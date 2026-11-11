@@ -1,0 +1,285 @@
+<div class="page-shell">
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Smart Incident Resolution Finder home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 3.25 20 7.5v9L12 20.75 4 16.5v-9l8-4.25Z" />
+          <path d="m8.7 12.1 2.15 2.15 4.65-4.8" />
+        </svg>
+      </span>
+      <span class="brand-name">Incident Finder</span>
+    </a>
+    <span class="topbar-note"><span class="status-dot"></span> Resolution knowledge base</span>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <div class="eyebrow"><span class="eyebrow-line"></span> SMART INCIDENT RESOLUTION</div>
+      <h1 id="page-title">Smart Incident<br /><span>Resolution Finder</span></h1>
+      <p class="intro-copy">
+        Describe an issue and find resolved incidents that can help your team get back on track.
+      </p>
+    </section>
+
+    <section class="search-panel" aria-labelledby="search-title">
+      <div class="panel-heading">
+        <span class="step-number">01</span>
+        <div>
+          <h2 id="search-title">Describe the incident</h2>
+          <p>Include the symptoms, affected service, and any useful context.</p>
+        </div>
+      </div>
+
+      <label class="sr-only" for="incident-description">Incident description</label>
+      <textarea
+        id="incident-description"
+        rows="5"
+        maxlength="5000"
+        placeholder="For example: Application APIs are taking too much time to respond due to slow database queries..."
+        [value]="description()"
+        [attr.aria-invalid]="validationMessage() ? 'true' : null"
+        [attr.aria-describedby]="validationMessage() ? 'description-error character-count' : 'character-count'"
+        (input)="updateDescription($event)"
+        (keydown.control.enter)="search('standard')"
+        (keydown.meta.enter)="search('standard')"
+      ></textarea>
+
+      <div class="field-footer">
+        @if (validationMessage()) {
+          <p class="validation-message" id="description-error" role="alert">
+            {{ validationMessage() }}
+          </p>
+        } @else {
+          <span class="keyboard-hint">Tip: press Ctrl + Enter to search</span>
+        }
+        <span id="character-count" class="character-count">{{ description().length }} / 5000</span>
+      </div>
+
+      <div class="actions">
+        <button
+          class="search-button standard-search-button"
+          type="button"
+          [disabled]="loading()"
+          (click)="search('standard')"
+        >
+          @if (loading() && searchMode() === 'standard') {
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Searching</span>
+          } @else {
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <circle cx="8.75" cy="8.75" r="5.75" />
+              <path d="m13 13 4 4" />
+            </svg>
+            <span>Standard Search</span>
+          }
+        </button>
+        <button
+          class="search-button smart-search-button"
+          type="button"
+          [disabled]="loading()"
+          (click)="search('smart')"
+        >
+          @if (loading() && searchMode() === 'smart') {
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Analyzing</span>
+          } @else {
+            <span aria-hidden="true">✦</span>
+            <span>Smart Search</span>
+          }
+        </button>
+        <button class="clear-button" type="button" [disabled]="loading()" (click)="clear()">
+          Clear
+        </button>
+      </div>
+      <p class="privacy-note">
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4.5 7V5a3.5 3.5 0 1 1 7 0v2M3.5 7h9v7h-9V7Z" />
+          <path d="M8 9.5v2" />
+        </svg>
+        Your search is matched against resolved incidents in your knowledge base.
+      </p>
+    </section>
+
+    @if (loading()) {
+      <section class="state-card loading-state" role="status" aria-live="polite">
+        <span class="loading-orbit" aria-hidden="true"></span>
+        <div>
+          <h2>{{ searchMode() === 'smart' ? 'Searching and analyzing' : 'Finding related incidents' }}</h2>
+          <p>{{ searchMode() === 'smart' ? 'Comparing historical cases and generating AI suggestions...' : 'Comparing your description with resolved cases...' }}</p>
+        </div>
+      </section>
+    }
+
+    @if (errorMessage()) {
+      <section class="state-card error-state" role="alert">
+        <span class="state-icon error-icon" aria-hidden="true">!</span>
+        <div>
+          <h2>Search couldn’t be completed</h2>
+          <p>{{ errorMessage() }}</p>
+        </div>
+      </section>
+    }
+
+    @if (hasSearched() && results().length > 0) {
+      <section class="results-section" aria-labelledby="results-title" aria-live="polite">
+        <div class="results-heading">
+          <div>
+            <span class="results-kicker">VERIFIED HISTORICAL RESOLUTIONS</span>
+            <h2 id="results-title">Related resolved incidents</h2>
+          </div>
+          <span class="result-count">{{ results().length }} {{ results().length === 1 ? 'match' : 'matches' }}</span>
+        </div>
+        <div class="result-list">
+          @for (incident of results(); track incident.incidentId) {
+            <article class="result-card">
+              <div class="result-topline">
+                <span class="incident-id">INC-{{ incident.incidentId }}</span>
+                <div class="similarity">
+                  <span class="similarity-value">{{ incident.similarityPercentage | number: '1.0-1' }}%</span>
+                  <span class="similarity-label">similarity</span>
+                </div>
+              </div>
+              <h3>{{ incident.title }}</h3>
+              <div
+                class="similarity-track"
+                role="meter"
+                [attr.aria-label]="'Similarity score'"
+                [attr.aria-valuenow]="incident.similarityPercentage"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <span [style.width.%]="similarityWidth(incident.similarityPercentage)"></span>
+              </div>
+              <div class="resolution">
+                <span class="resolution-label">
+                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="m3.5 8.2 2.8 2.8 6.2-6.3" />
+                  </svg>
+                  VERIFIED RESOLUTION
+                </span>
+                <p>{{ incident.resolution }}</p>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    @if (hasSearched() && searchMode() === 'smart') {
+      @if (aiAnalysis(); as analysis) {
+        <section class="ai-analysis" aria-labelledby="ai-analysis-title" aria-live="polite">
+        <div class="ai-heading">
+          <div>
+            <span class="results-kicker">AI-GENERATED GUIDANCE</span>
+            <h2 id="ai-analysis-title">Smart analysis</h2>
+          </div>
+          <span class="ai-badge">AI suggestions</span>
+        </div>
+        <p class="ai-disclaimer">
+          These suggestions are AI-generated and are not verified incident history. Validate them
+          against your environment before taking action.
+        </p>
+        <div class="ai-explanation">
+          <h3>Technical explanation</h3>
+          <p>{{ analysis.explanation }}</p>
+        </div>
+        <div class="ai-guidance-grid">
+          <section class="ai-guidance-card">
+            <h3>Possible root causes</h3>
+            <ul>
+              @for (item of analysis.possibleRootCauses; track $index) {
+                <li>{{ item }}</li>
+              }
+            </ul>
+          </section>
+          <section class="ai-guidance-card">
+            <h3>Troubleshooting steps</h3>
+            <ul>
+              @for (item of analysis.troubleshootingSteps; track $index) {
+                <li>{{ item }}</li>
+              }
+            </ul>
+          </section>
+          <section class="ai-guidance-card">
+            <h3>Preventive measures</h3>
+            <ul>
+              @for (item of analysis.preventiveMeasures; track $index) {
+                <li>{{ item }}</li>
+              }
+            </ul>
+          </section>
+          <section class="ai-guidance-card">
+            <h3>Additional recommendations</h3>
+            <ul>
+              @for (item of analysis.additionalRecommendations; track $index) {
+                <li>{{ item }}</li>
+              }
+            </ul>
+          </section>
+        </div>
+        </section>
+      } @else {
+        <section class="state-card ai-unavailable" aria-live="polite">
+          <span class="state-icon search-icon" aria-hidden="true">i</span>
+          <div>
+            <h2>AI analysis unavailable</h2>
+            <p>The historical search completed, but AI suggestions were not returned. You can still use the verified resolutions above.</p>
+          </div>
+        </section>
+      }
+    }
+
+    @if (hasSearched() && results().length === 0) {
+      <section class="state-card no-match-state" aria-live="polite">
+        <span class="state-icon search-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="10.8" cy="10.8" r="6.8" />
+            <path d="m16 16 4.2 4.2" />
+          </svg>
+        </span>
+        <div>
+          <h2>No close matches found</h2>
+          <p>{{ responseMessage() || 'No sufficiently similar resolved incident found.' }} Try adding more detail or describing the symptoms another way.</p>
+        </div>
+      </section>
+    }
+
+    @if (!loading() && !errorMessage() && !hasSearched()) {
+      <section class="how-it-works" aria-label="How incident search works">
+        <div class="how-heading">
+          <span class="how-spark" aria-hidden="true">✦</span>
+          <h2>From incident to insight</h2>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <span class="step-icon step-icon-blue" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M4 5.5h12M4 9.5h8M4 13.5h10M3 2.5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1Z" />
+              </svg>
+            </span>
+            <div><h3>Describe</h3><p>Share what’s going wrong</p></div>
+          </div>
+          <span class="step-connector" aria-hidden="true"></span>
+          <div class="step">
+            <span class="step-icon step-icon-violet" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <circle cx="8.5" cy="8.5" r="5.5" /><path d="m12.5 12.5 4 4M6.5 8.5h4M8.5 6.5v4" />
+              </svg>
+            </span>
+            <div><h3>Discover</h3><p>Find similar resolved cases</p></div>
+          </div>
+          <span class="step-connector" aria-hidden="true"></span>
+          <div class="step">
+            <span class="step-icon step-icon-green" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="m4 10.5 3.5 3.5L16 5.5" /><path d="M17 10a7 7 0 1 1-2.05-4.95" />
+              </svg>
+            </span>
+            <div><h3>Resolve</h3><p>Use proven resolutions</p></div>
+          </div>
+        </div>
+      </section>
+    }
+  </main>
+  <footer>Smart Incident Resolution Finder <span>·</span> Turn past incidents into faster fixes</footer>
+</div>

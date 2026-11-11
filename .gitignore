@@ -1,0 +1,17 @@
+# Java / Maven
+back-end/target/
+*.class
+
+# Angular / Node
+front-end/node_modules/
+front-end/dist/
+front-end/.angular/
+front-end/coverage/
+npm-debug.log*
+
+# IDE and OS files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

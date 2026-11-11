@@ -1,0 +1,153 @@
+:root {
+  color-scheme: light;
+  font-family: 'Segoe UI', sans-serif;
+  color: #172b4d;
+  background: #f4f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+textarea {
+  font: inherit;
+}
+
+.smart-search-button {
+  background: #6546c7;
+  box-shadow: 0 4px 10px #6546c72b;
+}
+
+.smart-search-button:hover:not(:disabled) {
+  background: #5638b4;
+}
+
+.ai-analysis {
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid #e3dcf7;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 5px 18px #3d2c7210;
+}
+
+.ai-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ai-heading h2 {
+  margin-top: 5px;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.ai-badge {
+  padding: 5px 9px;
+  border-radius: 20px;
+  color: #6546a7;
+  background: #f0ebfb;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ai-disclaimer {
+  margin-top: 10px;
+  color: #796a99;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.ai-explanation {
+  margin-top: 15px;
+  padding: 13px;
+  border-left: 3px solid #8769d3;
+  border-radius: 5px;
+  background: #f7f5fc;
+}
+
+.ai-explanation h3,
+.ai-guidance-card h3 {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ai-explanation p {
+  margin-top: 5px;
+  color: #64728a;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.ai-guidance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 11px;
+}
+
+.ai-guidance-card {
+  padding: 13px;
+  border: 1px solid #ece8f5;
+  border-radius: 8px;
+}
+
+.ai-guidance-card h3 {
+  color: #514078;
+}
+
+.ai-guidance-card ul {
+  display: grid;
+  gap: 6px;
+  margin: 9px 0 0;
+  padding-left: 17px;
+  color: #64728a;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.ai-unavailable {
+  border-color: #e3dcf7;
+}
+
+button:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #8bb6ff;
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  .actions .search-button {
+    flex: 1 1 145px;
+  }
+
+  .actions .clear-button {
+    flex: 0 0 auto;
+  }
+
+  .ai-analysis {
+    padding: 15px;
+  }
+
+  .ai-guidance-grid {
+    grid-template-columns: 1fr;
+  }
+}

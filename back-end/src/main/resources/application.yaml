@@ -1,0 +1,8 @@
+claude:
+  api:
+    api-key: xxxxx
+    url: https://api.anthropic.com/v1/messages
+    model: xxxxx
+    api-version: 2023-06-01
+    timeout: 30s
+    max-tokens: 1200

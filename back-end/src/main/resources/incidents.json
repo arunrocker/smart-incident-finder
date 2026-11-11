@@ -1,0 +1,572 @@
+[
+  {
+    "id": 1,
+    "title": "Application API Response Slow",
+    "description": "Application APIs are taking too much time to respond due to slow database queries.",
+    "resolution": "Analyzed slow SQL queries, added appropriate database indexes and optimized frequently executed queries."
+  },
+  {
+    "id": 2,
+    "title": "Database Connection Pool Exhaustion",
+    "description": "Application is unable to connect to the database because all available connections are occupied.",
+    "resolution": "Reviewed connection pool configuration, increased pool capacity appropriately and fixed connections not being released."
+  },
+  {
+    "id": 3,
+    "title": "Application High CPU Usage",
+    "description": "Server CPU utilization is continuously high and application performance is degraded.",
+    "resolution": "Analyzed thread activity, identified CPU intensive operations and optimized the application code."
+  },
+  {
+    "id": 4,
+    "title": "OutOfMemoryError in Application",
+    "description": "Java application crashes frequently because JVM memory usage reaches the configured heap limit.",
+    "resolution": "Analyzed heap dumps, identified memory leaks and optimized object allocation and memory management."
+  },
+  {
+    "id": 5,
+    "title": "Application Login Failure",
+    "description": "Users are unable to log into the application because authentication requests are failing.",
+    "resolution": "Reviewed authentication logs, corrected security configuration and verified user credential validation."
+  },
+  {
+    "id": 6,
+    "title": "REST API Returns HTTP 500",
+    "description": "REST API requests intermittently fail with internal server error responses.",
+    "resolution": "Analyzed application logs, identified an unhandled exception and added appropriate exception handling."
+  },
+  {
+    "id": 7,
+    "title": "File Upload Failure",
+    "description": "Users cannot upload documents because file upload requests fail with size limit errors.",
+    "resolution": "Reviewed multipart configuration and increased the maximum permitted file size."
+  },
+  {
+    "id": 8,
+    "title": "Database Query Timeout",
+    "description": "Database queries take too long and eventually fail with query timeout exceptions.",
+    "resolution": "Analyzed execution plans, optimized SQL queries and reviewed database indexing."
+  },
+  {
+    "id": 9,
+    "title": "Application Server Not Starting",
+    "description": "Spring Boot application fails to start because the configured server port is already occupied.",
+    "resolution": "Identified the process using the configured port and changed the application server port."
+  },
+  {
+    "id": 10,
+    "title": "NullPointerException in API",
+    "description": "REST API throws NullPointerException when processing requests containing missing values.",
+    "resolution": "Identified the null object reference, added input validation and handled missing values safely."
+  },
+  {
+    "id": 11,
+    "title": "Angular API Integration Failure",
+    "description": "Angular frontend cannot communicate with Spring Boot backend because browser requests are blocked by CORS.",
+    "resolution": "Configured appropriate CORS origins and HTTP methods in the Spring Boot application."
+  },
+  {
+    "id": 12,
+    "title": "Scheduled Job Not Executing",
+    "description": "Scheduled background tasks are not executing at the expected time in the application.",
+    "resolution": "Reviewed scheduler configuration, verified scheduling annotations and corrected the cron expression."
+  },
+  {
+    "id": 13,
+    "title": "JVM Garbage Collection Overhead",
+    "description": "Application experiences frequent garbage collection cycles, resulting in high response times and degraded performance.",
+    "resolution": "Analyzed GC logs, reviewed heap allocation patterns, optimized object creation and adjusted JVM garbage collection settings."
+  },
+  {
+    "id": 14,
+    "title": "Java Thread Deadlock",
+    "description": "Application threads are blocked indefinitely while waiting for locks held by other threads.",
+    "resolution": "Captured thread dumps, identified circular lock dependencies and corrected synchronization logic to prevent deadlocks."
+  },
+  {
+    "id": 15,
+    "title": "Thread Pool Exhaustion",
+    "description": "Application cannot process incoming requests because all worker threads are occupied by long-running tasks.",
+    "resolution": "Analyzed thread pool utilization, identified blocking operations and optimized thread pool sizing and task execution."
+  },
+  {
+    "id": 16,
+    "title": "Memory Leak in Java Application",
+    "description": "Application memory consumption continuously increases over time even when traffic remains stable.",
+    "resolution": "Analyzed heap dumps using memory profiling tools, identified objects retained unnecessarily and fixed resource cleanup and object references."
+  },
+  {
+    "id": 17,
+    "title": "StackOverflowError",
+    "description": "Application crashes with StackOverflowError because of excessive recursive method calls.",
+    "resolution": "Analyzed the stack trace, identified infinite or excessive recursion and corrected the termination condition."
+  },
+  {
+    "id": 18,
+    "title": "ClassNotFoundException",
+    "description": "Application fails to execute because a required Java class is missing from the runtime classpath.",
+    "resolution": "Reviewed dependency configuration, verified packaged JAR contents and added the missing dependency."
+  },
+  {
+    "id": 19,
+    "title": "NoClassDefFoundError",
+    "description": "Application fails at runtime because a required class could not be loaded or initialized.",
+    "resolution": "Reviewed runtime dependencies, investigated class initialization failures and corrected classpath and packaging issues."
+  },
+  {
+    "id": 20,
+    "title": "Spring Bean Creation Failure",
+    "description": "Spring Boot application fails during startup because a required bean cannot be created or injected.",
+    "resolution": "Reviewed dependency injection configuration, component scanning, bean definitions and constructor dependencies."
+  },
+  {
+    "id": 21,
+    "title": "Circular Dependency Between Spring Beans",
+    "description": "Application startup fails because two or more Spring components depend on each other.",
+    "resolution": "Reviewed the dependency structure and refactored responsibilities to eliminate circular dependencies."
+  },
+  {
+    "id": 22,
+    "title": "Spring Boot Configuration Failure",
+    "description": "Application fails to start because required environment properties or configuration values are missing.",
+    "resolution": "Validated application properties, environment variables and active Spring profiles, then corrected the missing configuration."
+  },
+  {
+    "id": 23,
+    "title": "Spring Transaction Rollback Failure",
+    "description": "Database operations partially execute or fail to roll back when an exception occurs during transaction processing.",
+    "resolution": "Reviewed transaction boundaries, propagation settings and rollback rules, and corrected transaction management."
+  },
+  {
+    "id": 24,
+    "title": "JPA LazyInitializationException",
+    "description": "Application throws LazyInitializationException when accessing lazy-loaded entity relationships outside an active Hibernate session.",
+    "resolution": "Reviewed transaction boundaries and entity fetching strategies, and used appropriate fetch joins or DTO projections."
+  },
+  {
+    "id": 25,
+    "title": "Hibernate N+1 Query Problem",
+    "description": "Application executes excessive database queries when retrieving entities with associated relationships.",
+    "resolution": "Analyzed SQL execution logs and optimized entity fetching using fetch joins, entity graphs or batch fetching."
+  },
+  {
+    "id": 26,
+    "title": "Database Deadlock",
+    "description": "Multiple database transactions block each other while acquiring locks on shared records.",
+    "resolution": "Analyzed database deadlock graphs, optimized transaction ordering and reduced lock duration."
+  },
+  {
+    "id": 27,
+    "title": "Database Transaction Blocking",
+    "description": "Database queries remain blocked because another transaction holds locks on required database resources.",
+    "resolution": "Identified blocking sessions, analyzed long-running transactions and optimized transaction execution."
+  },
+  {
+    "id": 28,
+    "title": "Database Disk Space Exhaustion",
+    "description": "Database operations fail because the database storage or transaction log has reached its configured capacity.",
+    "resolution": "Reviewed database storage utilization, expanded available capacity and implemented transaction log and data retention maintenance."
+  },
+  {
+    "id": 29,
+    "title": "Database Authentication Failure",
+    "description": "Application cannot establish a database connection because the configured database credentials are invalid or expired.",
+    "resolution": "Verified database credentials, login permissions and secret configuration, then updated the application connection settings."
+  },
+  {
+    "id": 30,
+    "title": "Database Schema Mismatch",
+    "description": "Application fails because the deployed database schema does not match the entity mappings or expected application version.",
+    "resolution": "Compared application entity mappings with the database schema and applied the required migration scripts."
+  },
+  {
+    "id": 31,
+    "title": "Database Replication Lag",
+    "description": "Read replicas return outdated data because database replication is delayed.",
+    "resolution": "Monitored replication lag, investigated replication bottlenecks and routed consistency-sensitive operations to the primary database."
+  },
+  {
+    "id": 32,
+    "title": "SQL Constraint Violation",
+    "description": "Database insert or update operations fail because of primary key, foreign key or unique constraint violations.",
+    "resolution": "Analyzed the failing SQL operation, validated input data and corrected entity relationships and duplicate record handling."
+  },
+  {
+    "id": 33,
+    "title": "SQL Server TempDB Exhaustion",
+    "description": "SQL Server queries fail or slow down because TempDB resources are exhausted or heavily contended.",
+    "resolution": "Reviewed TempDB utilization, identified resource-intensive queries and optimized temporary object usage and TempDB configuration."
+  },
+  {
+    "id": 34,
+    "title": "REST API Rate Limit Exceeded",
+    "description": "API requests are rejected because clients exceed the configured request rate limit.",
+    "resolution": "Reviewed API traffic patterns, configured appropriate rate limits and implemented retry handling with exponential backoff."
+  },
+  {
+    "id": 35,
+    "title": "API Gateway Timeout",
+    "description": "API gateway returns timeout responses because downstream services take longer than the configured timeout.",
+    "resolution": "Analyzed downstream response times, optimized slow operations and reviewed gateway and service timeout configurations."
+  },
+  {
+    "id": 36,
+    "title": "Microservice Communication Failure",
+    "description": "One microservice cannot communicate with another because the downstream service is unavailable or unreachable.",
+    "resolution": "Analyzed service connectivity, verified endpoint configuration and implemented appropriate timeouts, retries and circuit breakers."
+  },
+  {
+    "id": 37,
+    "title": "Circuit Breaker Continuously Open",
+    "description": "Microservice requests are rejected because the circuit breaker remains open after repeated downstream failures.",
+    "resolution": "Reviewed failure thresholds, investigated downstream service health and corrected circuit breaker recovery configuration."
+  },
+  {
+    "id": 38,
+    "title": "Duplicate API Request Processing",
+    "description": "The same business transaction is processed multiple times because clients or infrastructure retry requests.",
+    "resolution": "Implemented idempotency keys, duplicate request detection and appropriate transaction handling."
+  },
+  {
+    "id": 39,
+    "title": "API Response Serialization Failure",
+    "description": "REST API responses fail because Java objects contain unsupported types, circular references or serialization errors.",
+    "resolution": "Reviewed DTO structures, Jackson configuration and entity relationships, and corrected serialization issues."
+  },
+  {
+    "id": 40,
+    "title": "API Request Payload Validation Failure",
+    "description": "API requests fail because incoming payloads contain missing, invalid or incorrectly formatted fields.",
+    "resolution": "Implemented request DTO validation using Bean Validation annotations and returned meaningful validation error responses."
+  },
+  {
+    "id": 41,
+    "title": "JWT Token Expiration Failure",
+    "description": "Authenticated API requests fail because access tokens expire before clients refresh or renew them.",
+    "resolution": "Reviewed token expiration settings and implemented secure token refresh and re-authentication handling."
+  },
+  {
+    "id": 42,
+    "title": "Unauthorized API Access",
+    "description": "Users receive HTTP 401 or 403 responses when accessing APIs because authentication or authorization configuration is incorrect.",
+    "resolution": "Reviewed security filters, JWT validation, user roles and endpoint authorization rules."
+  },
+  {
+    "id": 43,
+    "title": "SQL Injection Vulnerability",
+    "description": "Application is vulnerable to SQL injection because user input is directly concatenated into database queries.",
+    "resolution": "Replaced dynamic query concatenation with parameterized queries or prepared statements and validated incoming inputs."
+  },
+  {
+    "id": 44,
+    "title": "Cross-Site Scripting Vulnerability",
+    "description": "Application may execute malicious scripts because untrusted user input is rendered without appropriate sanitization.",
+    "resolution": "Applied context-aware output encoding, input validation and secure frontend rendering practices."
+  },
+  {
+    "id": 45,
+    "title": "Cross-Site Request Forgery",
+    "description": "Application accepts unauthorized state-changing requests because CSRF protection is incorrectly configured.",
+    "resolution": "Reviewed CSRF protection, configured appropriate security tokens and validated cookie SameSite settings."
+  },
+  {
+    "id": 46,
+    "title": "Angular Application Blank Screen",
+    "description": "Users see a blank screen because the Angular application fails during initialization or encounters a runtime exception.",
+    "resolution": "Reviewed browser console errors, application bootstrap configuration and module dependencies, then fixed the initialization failure."
+  },
+  {
+    "id": 47,
+    "title": "Angular Memory Leak",
+    "description": "Angular application memory usage increases because subscriptions, event listeners or timers are not properly cleaned up.",
+    "resolution": "Reviewed component lifecycle management and implemented subscription cleanup using takeUntilDestroyed or appropriate unsubscribe mechanisms."
+  },
+  {
+    "id": 48,
+    "title": "Angular Application Slow Loading",
+    "description": "Frontend application takes too long to load because of large bundles, unnecessary dependencies or inefficient component loading.",
+    "resolution": "Analyzed bundle sizes, implemented lazy loading, optimized imports and enabled appropriate production build optimizations."
+  },
+  {
+    "id": 49,
+    "title": "Angular HTTP Request Failure",
+    "description": "Frontend API calls fail because of incorrect endpoint configuration, network errors or backend unavailability.",
+    "resolution": "Reviewed browser network logs, API base URLs, HTTP interceptors and backend connectivity."
+  },
+  {
+    "id": 50,
+    "title": "Angular Route Navigation Failure",
+    "description": "Users cannot navigate to certain application pages because route definitions, guards or lazy-loaded modules are incorrectly configured.",
+    "resolution": "Reviewed Angular router configuration, route guards, module loading and route parameter handling."
+  },
+  {
+    "id": 51,
+    "title": "Angular Build Compilation Failure",
+    "description": "Frontend deployment fails because Angular compilation encounters TypeScript errors, dependency conflicts or invalid build configuration.",
+    "resolution": "Analyzed build logs, corrected TypeScript errors and resolved dependency and Angular configuration conflicts."
+  },
+  {
+    "id": 52,
+    "title": "Browser Caching Serves Old Application",
+    "description": "Users continue seeing an outdated frontend version after a new application deployment.",
+    "resolution": "Reviewed browser and CDN cache policies, configured asset fingerprinting and corrected index.html cache headers."
+  },
+  {
+    "id": 53,
+    "title": "Static Resource Loading Failure",
+    "description": "Application fails to load CSS, JavaScript, images or other static resources because resource paths or server mappings are incorrect.",
+    "resolution": "Verified resource paths, reverse proxy mappings and static resource serving configuration."
+  },
+  {
+    "id": 54,
+    "title": "File Upload Storage Failure",
+    "description": "File uploads fail because the application server cannot access the configured storage location or lacks write permissions.",
+    "resolution": "Verified storage availability, filesystem permissions, mount configuration and upload directory capacity."
+  },
+  {
+    "id": 55,
+    "title": "Email Notification Failure",
+    "description": "Application fails to send email notifications because the SMTP server is unavailable or email configuration is incorrect.",
+    "resolution": "Verified SMTP host, port, authentication and TLS configuration, and reviewed mail server connectivity and logs."
+  },
+  {
+    "id": 56,
+    "title": "Message Queue Consumer Failure",
+    "description": "Background messages are not processed because message consumers have stopped or cannot connect to the messaging broker.",
+    "resolution": "Reviewed consumer logs, broker connectivity, consumer group configuration and message processing exceptions."
+  },
+  {
+    "id": 57,
+    "title": "Message Queue Backlog",
+    "description": "Messages accumulate in the queue because consumers cannot process incoming messages at the required rate.",
+    "resolution": "Analyzed consumer throughput, optimized message processing and scaled consumer instances appropriately."
+  },
+  {
+    "id": 58,
+    "title": "Duplicate Message Processing",
+    "description": "The same message is processed multiple times because of message redelivery or consumer failures.",
+    "resolution": "Implemented idempotent message processing, unique message identifiers and safe transaction handling."
+  },
+  {
+    "id": 59,
+    "title": "Scheduled Job Executed Multiple Times",
+    "description": "A scheduled task runs multiple times because multiple application instances execute the same scheduled operation.",
+    "resolution": "Implemented distributed scheduling coordination or a distributed lock to ensure only one instance executes the job."
+  },
+  {
+    "id": 60,
+    "title": "Cache Data Inconsistency",
+    "description": "Application returns outdated or inconsistent data because cached values are not refreshed after database updates.",
+    "resolution": "Reviewed cache invalidation strategies, implemented appropriate TTL policies and synchronized cache updates with database changes."
+  },
+  {
+    "id": 61,
+    "title": "Redis Connection Failure",
+    "description": "Application cannot retrieve cached data because the Redis server is unavailable or connection configuration is incorrect.",
+    "resolution": "Verified Redis connectivity, authentication, network access and connection pool configuration, and implemented fallback handling."
+  },
+  {
+    "id": 62,
+    "title": "Application Deployment Failure",
+    "description": "New application deployment fails because of incorrect artifact configuration, missing dependencies or environment-specific issues.",
+    "resolution": "Reviewed deployment logs, verified artifact integrity, environment variables and dependency compatibility before redeployment."
+  },
+  {
+    "id": 63,
+    "title": "Application Rollback Failure",
+    "description": "Application cannot return to the previous stable version because the rollback process or deployment artifacts are unavailable.",
+    "resolution": "Maintained versioned deployment artifacts, validated rollback procedures and ensured backward-compatible database changes."
+  },
+  {
+    "id": 64,
+    "title": "CI/CD Pipeline Failure",
+    "description": "Automated build and deployment pipeline fails during compilation, testing, artifact creation or deployment.",
+    "resolution": "Analyzed pipeline execution logs, corrected build configuration and dependency issues, and validated each deployment stage."
+  },
+  {
+    "id": 65,
+    "title": "Environment Configuration Mismatch",
+    "description": "Application behaves differently across development, testing and production environments because configurations are inconsistent.",
+    "resolution": "Compared environment-specific configuration, standardized externalized properties and validated deployment variables."
+  },
+  {
+    "id": 66,
+    "title": "SSL Certificate Expiration",
+    "description": "Users cannot securely access the application because the HTTPS certificate has expired.",
+    "resolution": "Renewed the SSL certificate, verified the certificate chain and configured automated expiration monitoring."
+  },
+  {
+    "id": 67,
+    "title": "DNS Resolution Failure",
+    "description": "Application cannot connect to dependent services because configured hostnames cannot be resolved.",
+    "resolution": "Verified DNS records, resolver configuration and network connectivity, then corrected hostname resolution."
+  },
+  {
+    "id": 68,
+    "title": "Firewall Blocking Application Traffic",
+    "description": "Application cannot communicate with external services because firewall rules block required ports or network traffic.",
+    "resolution": "Reviewed firewall policies, identified blocked connections and requested appropriate network access for required endpoints."
+  },
+  {
+    "id": 69,
+    "title": "Load Balancer Health Check Failure",
+    "description": "Application instances are removed from the load balancer because health check requests fail.",
+    "resolution": "Reviewed health check endpoints, readiness conditions, timeout configuration and application startup status."
+  },
+  {
+    "id": 70,
+    "title": "Reverse Proxy Configuration Failure",
+    "description": "Users cannot access application APIs or frontend routes because reverse proxy forwarding rules are incorrect.",
+    "resolution": "Reviewed proxy configuration, upstream server addresses, path rewriting and forwarded headers."
+  },
+  {
+    "id": 71,
+    "title": "Container Startup Failure",
+    "description": "Application container repeatedly exits because of incorrect startup commands, missing configuration or runtime dependency failures.",
+    "resolution": "Reviewed container logs, entrypoint commands, environment variables and image dependencies, then corrected the container configuration."
+  },
+  {
+    "id": 72,
+    "title": "Kubernetes Pod CrashLoopBackOff",
+    "description": "Kubernetes application pods repeatedly restart because the application crashes or fails its startup checks.",
+    "resolution": "Reviewed pod events and container logs, corrected application startup issues and validated resource and probe configuration."
+  },
+  {
+    "id": 73,
+    "title": "Kubernetes Pod Out Of Memory",
+    "description": "Kubernetes terminates application containers because memory consumption exceeds configured container limits.",
+    "resolution": "Reviewed memory utilization and JVM heap settings, identified excessive memory usage and adjusted resource requests and limits appropriately."
+  },
+  {
+    "id": 74,
+    "title": "Kubernetes Service Connectivity Failure",
+    "description": "Application pods cannot communicate through Kubernetes Services because selectors, ports or networking configuration are incorrect.",
+    "resolution": "Verified service selectors, pod labels, target ports, endpoints and cluster networking configuration."
+  },
+  {
+    "id": 75,
+    "title": "Kubernetes ImagePullBackOff",
+    "description": "Kubernetes cannot start a pod because the required container image cannot be downloaded from the configured registry.",
+    "resolution": "Verified image name, image tag, registry availability and image pull secrets, then corrected the deployment configuration."
+  },
+  {
+    "id": 76,
+    "title": "Kubernetes Configuration Not Applied",
+    "description": "Application continues using outdated configuration because Kubernetes ConfigMap or Secret updates are not reflected in running pods.",
+    "resolution": "Verified ConfigMap and Secret references, reviewed application reload behavior and restarted or rolled out workloads when required."
+  },
+  {
+    "id": 77,
+    "title": "Application Logging Failure",
+    "description": "Production application logs are missing or incomplete because of incorrect logging configuration or file permission issues.",
+    "resolution": "Reviewed logging framework configuration, log levels, file permissions and log output destinations."
+  },
+  {
+    "id": 78,
+    "title": "Log File Disk Exhaustion",
+    "description": "Application server runs out of disk space because log files continuously grow without proper rotation or retention.",
+    "resolution": "Configured log rotation, retention policies and appropriate logging levels, and cleaned up obsolete log files."
+  },
+  {
+    "id": 79,
+    "title": "Monitoring Metrics Not Available",
+    "description": "Operations teams cannot monitor application health because metrics are missing from the monitoring platform.",
+    "resolution": "Verified metrics endpoints, monitoring agent configuration, scrape targets and application instrumentation."
+  },
+  {
+    "id": 80,
+    "title": "Distributed Tracing Failure",
+    "description": "Operations teams cannot trace requests across microservices because distributed tracing information is missing or incorrectly propagated.",
+    "resolution": "Verified trace instrumentation, correlation identifiers, context propagation and tracing collector connectivity."
+  },
+  {
+    "id": 81,
+    "title": "Production Application Unavailable",
+    "description": "Users cannot access the application because the application server is down or critical dependencies are unavailable.",
+    "resolution": "Checked application health, server availability, dependency connectivity and infrastructure logs, then restored the affected services."
+  },
+  {
+    "id": 82,
+    "title": "Unexpected Application Restart",
+    "description": "Application instances restart unexpectedly because of process termination, resource exhaustion or infrastructure failures.",
+    "resolution": "Reviewed system logs, JVM crash reports, container events and resource utilization to identify the restart trigger."
+  },
+  {
+    "id": 83,
+    "title": "High Network Latency",
+    "description": "Application requests experience increased response times because of network congestion or slow communication between services.",
+    "resolution": "Analyzed network latency, packet loss and connection paths, then coordinated infrastructure optimization."
+  },
+  {
+    "id": 84,
+    "title": "External Third Party API Failure",
+    "description": "Application functionality is disrupted because an external third-party API is unavailable or returning unexpected responses.",
+    "resolution": "Reviewed external API status and response codes, implemented timeout and retry policies with circuit breakers, and provided fallback behavior."
+  },
+  {
+    "id": 85,
+    "title": "Production Data Corruption",
+    "description": "Application records contain inconsistent or corrupted values because of failed transactions, incorrect updates or data processing defects.",
+    "resolution": "Identified affected records, investigated transaction and audit logs, restored valid data from verified backups where necessary and corrected the underlying defect."
+  },
+  {
+    "id": 86,
+    "title": "Backup Job Failure",
+    "description": "Scheduled database or application backups fail because of storage problems, permissions or backup configuration errors.",
+    "resolution": "Reviewed backup execution logs, storage availability and permissions, corrected backup configuration and verified backup restoration."
+  },
+  {
+    "id": 87,
+    "title": "Disaster Recovery Failure",
+    "description": "Application services cannot be restored within the expected recovery time after a major infrastructure or data center failure.",
+    "resolution": "Reviewed disaster recovery procedures, validated backup integrity, tested failover mechanisms and updated recovery documentation."
+  },
+  {
+    "id": 88,
+    "title": "Production Performance Degradation After Deployment",
+    "description": "Application response times increase significantly after a new release because of code changes, inefficient queries or configuration differences.",
+    "resolution": "Compared application metrics before and after deployment, identified the regression and optimized or rolled back the affected changes."
+  },
+  {
+    "id": 89,
+    "title": "API Version Compatibility Failure",
+    "description": "Existing clients fail after an API update because request or response contracts have changed unexpectedly.",
+    "resolution": "Reviewed API contract changes, introduced backward-compatible versioning and validated integration with existing clients."
+  },
+  {
+    "id": 90,
+    "title": "Time Zone and Date Processing Error",
+    "description": "Application displays incorrect timestamps or processes scheduled operations at unexpected times because of timezone conversion issues.",
+    "resolution": "Standardized date storage using UTC, reviewed timezone conversions and corrected application and scheduler timezone configuration."
+  },
+  {
+    "id": 91,
+    "title": "Production Secrets Exposure",
+    "description": "Sensitive credentials or API keys are exposed through application logs, configuration files or source control.",
+    "resolution": "Revoked exposed credentials, rotated secrets, removed sensitive values from logs and repositories, and implemented secure secret management."
+  },
+  {
+    "id": 92,
+    "title": "Dependency Vulnerability Detected",
+    "description": "Security scanning identifies vulnerable third-party libraries in the application dependencies.",
+    "resolution": "Reviewed vulnerability reports, upgraded affected dependencies to secure compatible versions and reran security scans and regression tests."
+  },
+  {
+    "id": 93,
+    "title": "Insufficient Application Audit Logging",
+    "description": "Security and operations teams cannot determine who performed sensitive actions because application audit events are missing.",
+    "resolution": "Implemented structured audit logging for sensitive operations, including user identity, timestamp, action and relevant transaction identifiers."
+  },
+  {
+    "id": 94,
+    "title": "Connection Reset During API Communication",
+    "description": "API requests fail intermittently because network connections are unexpectedly closed by clients, servers or intermediate network components.",
+    "resolution": "Reviewed connection timeout settings, keep-alive configuration, proxy behavior and network logs, then corrected connection management."
+  },
+  {
+    "id": 95,
+    "title": "Production Deployment Database Migration Failure",
+    "description": "Application deployment fails because database migration scripts encounter schema conflicts, locking issues or incompatible changes.",
+    "resolution": "Reviewed migration history and scripts, validated schema compatibility, tested migrations in staging and applied a controlled recovery plan."
+  }
+]

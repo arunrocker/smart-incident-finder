@@ -1,0 +1,103 @@
+Smart Incident Resolution Finder - API Samples
+================================================
+
+Endpoint
+--------
+POST http://localhost:8080/api/incidents/search
+Content-Type: application/json
+
+Start the application from the project directory:
+  .\mvnw.cmd spring-boot:run
+
+
+1. Search with matches
+----------------------
+Request:
+  curl.exe -X POST "http://localhost:8080/api/incidents/search" `
+    -H "Content-Type: application/json" `
+    -d "{\"description\":\"Application APIs are taking too much time to respond due to slow database queries.\"}"
+
+JSON request body:
+{
+  "description": "Application APIs are taking too much time to respond due to slow database queries."
+}
+
+Example response (HTTP 200):
+{
+  "message": "Similar incidents found",
+  "results": [
+    {
+      "incidentId": 1,
+      "title": "Application API Response Slow",
+      "similarityPercentage": 91.9,
+      "resolution": "Analyzed slow SQL queries, added appropriate database indexes and optimized frequently executed queries."
+    },
+    {
+      "incidentId": 2,
+      "title": "Database Connection Pool Exhaustion",
+      "similarityPercentage": 28.5,
+      "resolution": "Reviewed connection pool configuration, increased pool capacity appropriately and fixed connections not being released."
+    },
+    {
+      "incidentId": 5,
+      "title": "Application Login Failure",
+      "similarityPercentage": 19.8,
+      "resolution": "Reviewed authentication logs, corrected security configuration and verified user credential validation."
+    }
+  ]
+}
+
+Similarity percentages above are calculated using the current incidents.json
+dataset, TF-IDF implementation, and default 10.0 percent threshold. Results
+and scores can change when the dataset or threshold changes.
+
+
+2. Search with no matching vocabulary
+-------------------------------------
+Request:
+{
+  "description": "qzxwkjh vbnmty"
+}
+
+Example response (HTTP 200):
+{
+  "message": "No sufficiently similar resolved incident found.",
+  "results": []
+}
+
+
+3. Invalid request: missing or blank description
+------------------------------------------------
+Request:
+{
+  "description": "   "
+}
+
+Example response (HTTP 400):
+{
+  "message": "description must not be blank"
+}
+
+
+4. Invalid request: malformed JSON
+----------------------------------
+Request body:
+{
+
+Example response (HTTP 400):
+{
+  "message": "Request body must be valid JSON with a non-empty description."
+}
+
+
+5. Invalid request: description too long
+----------------------------------------
+Descriptions longer than 5000 characters return HTTP 400:
+{
+  "message": "description must not exceed 5000 characters"
+}
+
+Request bodies larger than the configured 32768-byte limit return HTTP 413:
+{
+  "message": "Request body exceeds the maximum permitted size."
+}
