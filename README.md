@@ -30,10 +30,28 @@ npm start
 Open http://localhost:4200. The Angular development proxy forwards `/api`
 requests to the backend at `http://localhost:8080`.
 
-The backend's `application.yaml` contains placeholders for the Claude API
-key and model. Configure these securely outside source control to enable AI
-analysis. Standard search works independently; smart search returns verified
-historical matches without AI analysis when Claude is not configured.
+## Choose the Smart Search AI provider
+
+Set `app.ai.provider` in `back-end/src/main/resources/application.yaml` to
+`claude` or `gemini`. The selected provider's API key is supplied separately
+through `CLAUDE_API_KEY` or `GEMINI_API_KEY`. For example, in PowerShell:
+
+```powershell
+$env:CLAUDE_API_KEY = '<your Claude API key>'
+$env:GEMINI_API_KEY = '<your Gemini API key>'
+```
+
+Only the selected provider client is created. The application fails during
+startup if the provider name is unsupported or the selected provider's key is
+missing. Changing provider requires only configuration and an application
+restart; Angular and the REST response DTO are provider-neutral. See
+[`docs/SETUP_AND_DEPLOYMENT.md`](docs/SETUP_AND_DEPLOYMENT.md) for details.
 
 See [`docs/README.md`](docs/README.md) for the documentation index and
 recommended reading order.
+
+## Deploy on Render
+
+This repository includes a Render Blueprint for a free, single-service Docker
+deployment. See [`docs/SETUP_AND_DEPLOYMENT.md`](docs/SETUP_AND_DEPLOYMENT.md)
+for setup steps and free-tier limitations.

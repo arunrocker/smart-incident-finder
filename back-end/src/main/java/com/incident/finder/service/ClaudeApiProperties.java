@@ -4,12 +4,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
 
-@ConfigurationProperties(prefix = "claude.api")
+@ConfigurationProperties(prefix = "app.ai.claude")
 public class ClaudeApiProperties {
 
-    private String apiKey = "xxxxx";
+    private String apiKey;
     private String url = "https://api.anthropic.com/v1/messages";
-    private String model = "xxxxx";
+    private String model = "claude-sonnet-4-5";
     private String apiVersion = "2023-06-01";
     private Duration timeout = Duration.ofSeconds(30);
     private int maxTokens = 1200;

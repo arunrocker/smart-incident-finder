@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: smart-incident-finder
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false

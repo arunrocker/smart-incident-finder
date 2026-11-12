@@ -41,7 +41,7 @@ public class IncidentSearchController {
         this.requestMetrics = requestMetrics;
     }
 
-    @PostMapping(path = "/search", consumes = MediaType.APPLICATION_JSON_VALUE,
+    @PostMapping(path = {"/search", "/smart-search"}, consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<IncidentSearchResponse> search(
             @Valid @RequestBody IncidentSearchRequest request
@@ -56,16 +56,16 @@ public class IncidentSearchController {
         }
 
         requestMetrics.recordValidRequest();
-        LOGGER.info("Incident search request received (descriptionLength={})",
+        LOGGER.info("Incident search request received (descriptionLength={}, mode=ai-enriched)",
                 description.length());
-        IncidentSearchResponse response = incidentService.searchIncidents(description);
+        IncidentSearchResponse response = smartIncidentSearchService.search(description);
         requestMetrics.recordSuccessfulSearch(response.results().isEmpty());
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping(path = "/smart-search", consumes = MediaType.APPLICATION_JSON_VALUE,
+    @PostMapping(path = "/tfidf-search", consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<IncidentSearchResponse> smartSearch(
+    public ResponseEntity<IncidentSearchResponse> tfidfSearch(
             @Valid @RequestBody IncidentSearchRequest request
     ) {
         String description = request.description();
@@ -78,9 +78,9 @@ public class IncidentSearchController {
         }
 
         requestMetrics.recordValidRequest();
-        LOGGER.info("Smart incident search request received (descriptionLength={})",
+        LOGGER.info("TF-IDF incident search request received (descriptionLength={})",
                 description.length());
-        IncidentSearchResponse response = smartIncidentSearchService.search(description);
+        IncidentSearchResponse response = incidentService.searchIncidents(description);
         requestMetrics.recordSuccessfulSearch(response.results().isEmpty());
         return ResponseEntity.ok(response);
     }

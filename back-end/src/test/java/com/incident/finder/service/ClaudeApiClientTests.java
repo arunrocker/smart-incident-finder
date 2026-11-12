@@ -119,8 +119,8 @@ class ClaudeApiClientTests {
                         {"content":[{"type":"text","text":"not JSON"}]}
                         """, MediaType.APPLICATION_JSON));
 
-        ClaudeApiException exception = assertThrows(
-                ClaudeApiException.class,
+        AiProviderException exception = assertThrows(
+                AiProviderException.class,
                 () -> client.analyze("issue", List.of())
         );
         assertEquals(ClaudeApiException.FailureType.INVALID_RESPONSE,

@@ -23,10 +23,10 @@ class SmartIncidentSearchServiceTests {
     private IncidentService incidentService;
 
     @Mock
-    private ClaudeApiClient claudeApiClient;
+    private AiAnalysisProvider aiAnalysisProvider;
 
     @Test
-    void enrichesServerGeneratedHistoricalResultsWithClaudeAnalysis() {
+    void enrichesServerGeneratedHistoricalResultsWithSelectedProviderAnalysis() {
         String description = "Database requests are slow";
         List<IncidentSearchResult> historicalResults = List.of(
                 new IncidentSearchResult(7, "Slow database", 88.4, "Added an index")
@@ -36,10 +36,10 @@ class SmartIncidentSearchServiceTests {
         AiAnalysis analysis = analysis();
 
         when(incidentService.searchIncidents(description)).thenReturn(historicalResponse);
-        when(claudeApiClient.analyze(description, historicalResults)).thenReturn(analysis);
+        when(aiAnalysisProvider.analyze(description, historicalResults)).thenReturn(analysis);
 
         IncidentSearchResponse response =
-                new SmartIncidentSearchService(incidentService, claudeApiClient).search(description);
+                new SmartIncidentSearchService(incidentService, aiAnalysisProvider).search(description);
 
         assertEquals(historicalResults, response.results());
         assertEquals(7, response.results().get(0).incidentId());
@@ -47,25 +47,26 @@ class SmartIncidentSearchServiceTests {
         assertEquals(88.4, response.results().get(0).similarityPercentage());
         assertEquals("Added an index", response.results().get(0).resolution());
         assertSame(analysis, response.aiAnalysis());
-        verify(claudeApiClient).analyze(description, historicalResults);
+        verify(aiAnalysisProvider).analyze(description, historicalResults);
     }
 
     @Test
-    void preservesHistoricalResultsAndOmitsAnalysisWhenClaudeFails() {
+    void preservesHistoricalResultsAndOmitsAnalysisWhenSelectedProviderFails() {
         String description = "Database requests are slow";
         IncidentSearchResponse historicalResponse = new IncidentSearchResponse(
                 "Similar incidents found",
                 List.of(new IncidentSearchResult(7, "Slow database", 88.4, "Added an index"))
         );
         when(incidentService.searchIncidents(description)).thenReturn(historicalResponse);
-        when(claudeApiClient.analyze(description, historicalResponse.results()))
-                .thenThrow(new ClaudeApiException(
-                        ClaudeApiException.FailureType.RATE_LIMITED,
-                        "Claude rate limit reached"
+        when(aiAnalysisProvider.providerName()).thenReturn("test-provider");
+        when(aiAnalysisProvider.analyze(description, historicalResponse.results()))
+                .thenThrow(new AiProviderException(
+                        AiProviderException.FailureType.RATE_LIMITED,
+                        "Provider rate limit reached"
                 ));
 
         IncidentSearchResponse response =
-                new SmartIncidentSearchService(incidentService, claudeApiClient).search(description);
+                new SmartIncidentSearchService(incidentService, aiAnalysisProvider).search(description);
 
         assertSame(historicalResponse, response);
         assertNull(response.aiAnalysis());
@@ -80,15 +81,15 @@ class SmartIncidentSearchServiceTests {
                 List.of()
         );
         when(incidentService.searchIncidents(description)).thenReturn(noMatches);
-        when(claudeApiClient.analyze(description, List.of())).thenReturn(analysis());
+        when(aiAnalysisProvider.analyze(description, List.of())).thenReturn(analysis());
 
         IncidentSearchResponse response =
-                new SmartIncidentSearchService(incidentService, claudeApiClient).search(description);
+                new SmartIncidentSearchService(incidentService, aiAnalysisProvider).search(description);
 
         assertEquals("No sufficiently similar resolved incident found.", response.message());
         assertEquals(List.of(), response.results());
         assertEquals(analysis(), response.aiAnalysis());
-        verify(claudeApiClient).analyze(description, List.of());
+        verify(aiAnalysisProvider).analyze(description, List.of());
     }
 
     private AiAnalysis analysis() {

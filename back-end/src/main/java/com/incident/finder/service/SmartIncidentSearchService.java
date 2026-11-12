@@ -2,6 +2,7 @@ package com.incident.finder.service;
 
 import com.incident.finder.model.AiAnalysis;
 import com.incident.finder.model.IncidentSearchResponse;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -13,14 +14,19 @@ public class SmartIncidentSearchService {
             LoggerFactory.getLogger(SmartIncidentSearchService.class);
 
     private final IncidentService incidentService;
-    private final ClaudeApiClient claudeApiClient;
+    private final AiAnalysisProvider aiAnalysisProvider;
 
     public SmartIncidentSearchService(
             IncidentService incidentService,
-            ClaudeApiClient claudeApiClient
+            AiAnalysisProvider aiAnalysisProvider
     ) {
         this.incidentService = incidentService;
-        this.claudeApiClient = claudeApiClient;
+        this.aiAnalysisProvider = aiAnalysisProvider;
+    }
+
+    @PostConstruct
+    void logSelectedProvider() {
+        LOGGER.info("AI analysis provider selected: {}", aiAnalysisProvider.providerName());
     }
 
     public IncidentSearchResponse search(String description) {
@@ -28,7 +34,8 @@ public class SmartIncidentSearchService {
                 incidentService.searchIncidents(description);
 
         try {
-            AiAnalysis analysis = claudeApiClient.analyze(
+            LOGGER.info("Requesting {} incident analysis", aiAnalysisProvider.providerName());
+            AiAnalysis analysis = aiAnalysisProvider.analyze(
                     description,
                     historicalResponse.results()
             );
@@ -37,9 +44,10 @@ public class SmartIncidentSearchService {
                     historicalResponse.results(),
                     analysis
             );
-        } catch (ClaudeApiException exception) {
+        } catch (AiProviderException exception) {
             LOGGER.warn(
-                    "Claude analysis unavailable (failureType={}); returning TF-IDF results only",
+                    "{} analysis unavailable (failureType={}); returning TF-IDF results only",
+                    aiAnalysisProvider.providerName(),
                     exception.getFailureType()
             );
             return historicalResponse;

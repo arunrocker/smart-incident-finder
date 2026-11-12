@@ -6,7 +6,12 @@ Endpoint
 POST http://localhost:8080/api/incidents/search
 Content-Type: application/json
 
+This endpoint invokes the selected AI provider after TF-IDF matching.
+Gemini is configured by default. Set GEMINI_API_KEY in the environment first;
+do not place the key directly in application.yaml.
+
 Start the application from the project directory:
+  $env:GEMINI_API_KEY = "your-key"
   .\mvnw.cmd spring-boot:run
 
 
@@ -22,7 +27,8 @@ JSON request body:
   "description": "Application APIs are taking too much time to respond due to slow database queries."
 }
 
-Example response (HTTP 200):
+Example response (HTTP 200; an aiAnalysis object is included when Gemini
+returns a valid analysis):
 {
   "message": "Similar incidents found",
   "results": [
@@ -50,6 +56,8 @@ Example response (HTTP 200):
 Similarity percentages above are calculated using the current incidents.json
 dataset, TF-IDF implementation, and default 10.0 percent threshold. Results
 and scores can change when the dataset or threshold changes.
+
+Use POST http://localhost:8080/api/incidents/tfidf-search to skip AI analysis.
 
 
 2. Search with no matching vocabulary

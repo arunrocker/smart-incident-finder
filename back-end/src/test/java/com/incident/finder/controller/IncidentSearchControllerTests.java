@@ -46,7 +46,7 @@ class IncidentSearchControllerTests {
 
     @Test
     void returnsMatchesForAValidSearchRequest() throws Exception {
-        when(incidentService.searchIncidents("Database API is slow"))
+        when(smartIncidentSearchService.search("Database API is slow"))
                 .thenReturn(new IncidentSearchResponse(
                         "Similar incidents found",
                         List.of(new IncidentSearchResult(
@@ -67,6 +67,29 @@ class IncidentSearchControllerTests {
                 .andExpect(jsonPath("$.results[0].incidentId").value(1))
                 .andExpect(jsonPath("$.results[0].similarityPercentage").value(85.6))
                 .andExpect(jsonPath("$.results[0].resolution").value("Optimized SQL queries"))
+                .andExpect(jsonPath("$.aiAnalysis").doesNotExist());
+
+        verify(smartIncidentSearchService).search("Database API is slow");
+    }
+
+    @Test
+    void tfidfOnlyRouteSkipsAiAnalysis() throws Exception {
+        when(incidentService.searchIncidents("Database API is slow"))
+                .thenReturn(new IncidentSearchResponse(
+                        "Similar incidents found",
+                        List.of(new IncidentSearchResult(
+                                1,
+                                "Application API Response Slow",
+                                85.6,
+                                "Optimized SQL queries"
+                        ))
+                ));
+
+        mockMvc.perform(post("/api/incidents/tfidf-search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"description\":\"Database API is slow\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results[0].incidentId").value(1))
                 .andExpect(jsonPath("$.aiAnalysis").doesNotExist());
 
         verify(incidentService).searchIncidents("Database API is slow");
@@ -126,7 +149,7 @@ class IncidentSearchControllerTests {
 
     @Test
     void returnsSuccessfulNoMatchResponse() throws Exception {
-        when(incidentService.searchIncidents("unrelated"))
+        when(smartIncidentSearchService.search("unrelated"))
                 .thenReturn(new IncidentSearchResponse(
                         "No sufficiently similar resolved incident found.",
                         List.of()
@@ -213,7 +236,7 @@ class IncidentSearchControllerTests {
 
     @Test
     void hidesUnexpectedServiceFailures() throws Exception {
-        when(incidentService.searchIncidents("failure"))
+        when(smartIncidentSearchService.search("failure"))
                 .thenThrow(new IllegalStateException("internal implementation detail"));
 
         mockMvc.perform(post("/api/incidents/search")

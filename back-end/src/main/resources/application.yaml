@@ -1,8 +1,16 @@
-claude:
-  api:
-    api-key: xxxxx
-    url: https://api.anthropic.com/v1/messages
-    model: xxxxx
-    api-version: 2023-06-01
-    timeout: 30s
-    max-tokens: 1200
+app:
+  ai:
+    provider: gemini
+    claude:
+      api-key: ${CLAUDE_API_KEY:}
+      url: https://api.anthropic.com/v1/messages
+      model: claude-sonnet-4-5
+      api-version: 2023-06-01
+      timeout: 30s
+      max-tokens: 1200
+    gemini:
+      api-key: ${GEMINI_API_KEY:}
+      base-url: https://generativelanguage.googleapis.com/v1beta
+      model: gemini-2.5-flash
+      timeout: 30s
+      max-output-tokens: 1200

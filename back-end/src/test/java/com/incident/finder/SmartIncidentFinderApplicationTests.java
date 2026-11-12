@@ -4,8 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.incident.finder.model.Incident;
 import com.incident.finder.model.IncidentSearchResponse;
 import com.incident.finder.service.IncidentService;
+import com.incident.finder.service.AiAnalysisProvider;
+import com.incident.finder.service.AiProviderException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -17,12 +20,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
-@SpringBootTest
+@SpringBootTest(properties = {
+		"app.ai.provider=claude",
+		"app.ai.claude.api-key=test-claude-key"
+})
 class SmartIncidentFinderApplicationTests {
 
 	@Autowired
@@ -33,6 +43,9 @@ class SmartIncidentFinderApplicationTests {
 
 	@Autowired
 	private IncidentService incidentService;
+
+	@MockBean
+	private AiAnalysisProvider aiAnalysisProvider;
 
 	@Test
 	void contextLoads() {
@@ -57,6 +70,10 @@ class SmartIncidentFinderApplicationTests {
 
 		assertFalse(response.results().isEmpty());
 		assertTrue(response.results().size() <= 3);
+		verify(aiAnalysisProvider).analyze(
+				"Database queries are slow",
+				response.results()
+		);
 		response.results().forEach(result -> {
 			Incident incident = historicalIncidents.stream()
 					.filter(historical -> historical.getId() == result.incidentId())
@@ -83,7 +100,12 @@ class SmartIncidentFinderApplicationTests {
 	}
 
 	@Test
-	void smartSearchKeepsHistoricalResultsWhenClaudeIsNotConfigured() throws Exception {
+	void smartSearchKeepsHistoricalResultsWhenSelectedProviderFails() throws Exception {
+		doThrow(new AiProviderException(
+				AiProviderException.FailureType.API_FAILURE,
+				"Test provider failure"
+		)).when(aiAnalysisProvider).analyze(anyString(), anyList());
+
 		mockMvc.perform(post("/api/incidents/smart-search")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""

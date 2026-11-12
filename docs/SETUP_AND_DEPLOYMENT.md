@@ -1,15 +1,14 @@
 # Setup and Deployment
 
-## Project layout
+## Repository layout
 
-The applications are sibling folders, not a single Maven/Angular monorepo:
+The GitHub repository keeps both applications together:
 
 ```text
-C:\Users\gbala\
-├── smart-incident-finder\                 # Spring Boot backend
-└── smart-incident-finder-angular\
-    ├── frontend\                           # Angular application
-    └── docs\
+smart-incident-finder\
+├── back-end\
+├── front-end\
+└── docs\
 ```
 
 ## Required software
@@ -29,7 +28,7 @@ installation is not needed.
 Backend dependencies are resolved by the wrapper. Frontend dependencies:
 
 ```powershell
-Set-Location C:\Users\gbala\smart-incident-finder-angular\frontend
+Set-Location .\front-end
 npm ci
 ```
 
@@ -40,7 +39,7 @@ npm ci
 From a PowerShell terminal:
 
 ```powershell
-Set-Location C:\Users\gbala\smart-incident-finder
+Set-Location .\back-end
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -53,7 +52,7 @@ An invalid or missing dataset prevents startup.
 In a second terminal:
 
 ```powershell
-Set-Location C:\Users\gbala\smart-incident-finder-angular\frontend
+Set-Location .\front-end
 npm start
 ```
 
@@ -69,24 +68,59 @@ The backend does not currently configure CORS. A direct browser call from a
 different origin therefore requires deployment routing or a deliberate CORS
 configuration.
 
-## Claude configuration
+## Select Claude or Gemini
 
-`src/main/resources/application.yaml` uses `xxxxx` placeholders for the
-Claude API key and model. Keep real credentials out of source control. Spring
-Boot property binding permits external overrides. For example:
+`back-end/src/main/resources/application.yaml` selects the backend AI
+integration:
+
+```yaml
+app:
+  ai:
+    provider: gemini # set to claude to select Claude instead
+```
+
+Change only `app.ai.provider` to `claude` or `gemini`, then restart the
+backend. Both clients implement the same `AiAnalysisProvider` interface.
+Spring creates only the selected conditional client; Angular continues using
+the same smart-search endpoint and response DTO.
+
+API credentials are not stored in YAML. Supply the two keys independently
+through environment variables:
 
 ```powershell
-$env:CLAUDE_API_APIKEY = '<your Anthropic API key>'
-$env:CLAUDE_API_MODEL = '<model available to your account>'
-Set-Location C:\Users\gbala\smart-incident-finder
+$env:CLAUDE_API_KEY = '<your Claude API key>'
+$env:GEMINI_API_KEY = '<your Gemini API key>'
+Set-Location .\back-end
 .\mvnw.cmd spring-boot:run
 ```
 
-Other bound keys include URL, API version, timeout, and max tokens. The
-defaults are in `application.yaml`: Anthropic Messages URL,
-`2023-06-01`, 30 seconds, and 1200 tokens. With placeholders unchanged,
-standard search works and smart search returns historic results without
-`aiAnalysis`; no fake analysis is substituted.
+Only the selected provider's key is required; the inactive provider's key
+may remain unset. Startup fails clearly when the provider is unsupported or
+the selected API key and required settings are missing. The YAML holds model,
+endpoint, timeout, and output-token settings. Claude uses Anthropic Messages;
+Gemini uses `generateContent` with JSON response mode. Both map to the same
+`AiAnalysis` response model. Runtime provider failures still fall back to
+historical results without AI analysis.
+
+## Deploy on Render (free tier)
+
+The root `render.yaml` and `Dockerfile` deploy the Angular production build and
+Spring Boot API together as one Docker web service. This keeps the frontend's
+`/api` requests same-origin and avoids a separate CORS configuration.
+
+1. Push the repository to GitHub and sign in to Render.
+2. In Render, create a **Blueprint** and select this GitHub repository. Render
+   reads `render.yaml` and builds the free web service.
+3. Set `GEMINI_API_KEY` to a valid Gemini API key when prompted (or in the
+   service's Environment settings). Keep the key in Render, not in source.
+4. Wait for the deployment to finish, then open the service's `onrender.com`
+   URL.
+
+The application serves the Angular UI at `/` and its API at `/api`. Render's
+free web services may spin down after inactivity, so the first request after a
+quiet period can take longer. Free-tier limits and availability can change;
+the Gemini API is a separate service and may have its own usage limits or
+charges.
 
 `application.properties` sets the 10.0% minimum similarity, 5000-character
 description limit, and 32768-byte request limit. External Spring property
@@ -97,7 +131,7 @@ overrides can change these values.
 Backend:
 
 ```powershell
-Set-Location C:\Users\gbala\smart-incident-finder
+Set-Location .\back-end
 .\mvnw.cmd clean test
 .\mvnw.cmd package
 ```
@@ -105,7 +139,7 @@ Set-Location C:\Users\gbala\smart-incident-finder
 Frontend:
 
 ```powershell
-Set-Location C:\Users\gbala\smart-incident-finder-angular\frontend
+Set-Location .\front-end
 npm test
 npm run build
 ```
@@ -121,8 +155,7 @@ directory (normally `dist/frontend/browser` with the current builder).
 | Angular dev server | `http://localhost:4200` |
 | Angular local API proxy | `/api` → `http://localhost:8080` |
 
-No database, Dockerfile/Compose configuration, Kubernetes manifests,
-authentication setup, or production hosting recipe is present in the
-inspected project. The incidents are loaded from a JSON classpath resource.
-Do not treat the dev proxy or placeholder Claude configuration as a
-production deployment configuration.
+No database, Docker Compose configuration, Kubernetes manifests, or
+authentication setup is present. The incidents are loaded from a JSON
+classpath resource. Do not treat the dev proxy or placeholder Claude
+configuration as a production deployment configuration.
