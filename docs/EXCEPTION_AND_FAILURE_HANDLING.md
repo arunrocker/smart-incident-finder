@@ -57,10 +57,10 @@ There is a noteworthy gap: no dedicated not-found handler exists. An
 unmapped path's Spring exception may reach the generic handler, which can
 return 500 rather than a purpose-built 404 response.
 
-## Claude API failures
+## AI provider failures
 
-`ClaudeApiClient` wraps upstream issues in `ClaudeApiException` with a
-`FailureType`. It classifies:
+The selected AI client wraps upstream issues in `AiProviderException` with a
+`FailureType`. Groq, Gemini, and Claude clients classify:
 
 - 401/403 as authentication failure;
 - 429 as rate limited;
@@ -71,15 +71,14 @@ return 500 rather than a purpose-built 404 response.
 - blank or `xxxxx` API key/model/url as not configured.
 
 The configured 30-second connect/read timeout is set on the request factory.
-`SmartIncidentSearchService.search()` catches the typed exception, logs its
-category, and returns the already-generated historical response without
-`aiAnalysis`. It does not retry, back off, or call Claude for the standard
-endpoint. This is the core isolation boundary that keeps normal search
-available when the external AI provider is down.
+`GlobalExceptionHandler` maps typed failures to HTTP 503 with a generic
+message. It logs only the failure category, not provider response details or
+credentials. Smart Search does not retry, back off, or return an
+AI-less success-shaped response.
 
-The public smart-search response does not currently indicate *why* analysis
-is missing. The frontend can show an AI-unavailable notice but cannot
-differentiate authentication from rate limiting from that payload.
+Missing AI credentials do not prevent application startup. Standard Search
+continues to use TF-IDF without calling the provider, even if the AI service
+is unavailable or unconfigured.
 
 ## Logging and counters
 
@@ -89,17 +88,15 @@ The code uses Spring's SLF4J logging:
 - the search service logs result count;
 - invalid and oversized requests log rejection reasons;
 - unexpected errors log the full server-side exception;
-- smart-search Claude failures log the failure category.
+- AI provider failures log only the failure category.
 
-The log statements do not intentionally include the description text or
-Claude API key.
+The log statements do not intentionally include the description text or API
+key.
 
 `SearchRequestMetrics` records atomic in-memory counts for total requests,
 successful searches, no-match searches, invalid requests, and unexpected
 errors. The class exposes `snapshot()` for Java callers, but no HTTP endpoint
-or Actuator integration exposes it. Claude fallback is recorded as a
-successful request because the application returns a successful historic
-response.
+or Actuator integration exposes it.
 
 ## Practical scenarios
 
@@ -110,15 +107,14 @@ response.
 | Body exceeds 32768 bytes | Filter returns HTTP 413. |
 | `incidents.json` is malformed | Startup fails; the server does not run with an invalid/partial corpus. |
 | Search engine throws unexpectedly | Generic handler returns HTTP 500; internal details are only logged. |
-| Claude key is still `xxxxx` | Claude client does not make an outbound request; smart search returns historic results only. |
-| Claude responds 401, 429, 503, or times out | Typed failure is caught by smart service; historical response is returned without AI. A 503 is classified as generic `API_FAILURE`, not a special enum category. |
-| Claude returns malformed JSON | Client classifies it as `INVALID_RESPONSE`; the smart service falls back to history. |
-| Standard Search is clicked while Claude is unavailable | Claude is never called; normal TF-IDF behavior is unaffected. |
-| Browser times out before a slow smart response | Angular's 15-second RxJS timeout may fire before backend's 30-second timeout; browser shows an error while the server-side Claude call may still finish. |
+| Selected AI key is missing or invalid | Application startup and Standard Search remain available; Smart Search returns HTTP 503. |
+| Provider responds 401/403, 429, 503, or times out | Smart Search returns HTTP 503 with a generic message; the public response does not expose provider details. |
+| Provider returns malformed or empty JSON | The response is classified as invalid and Smart Search returns HTTP 503. |
+| Standard Search is clicked while the AI provider is unavailable | No provider request is made; TF-IDF search continues independently. |
+| Smart Search takes longer than usual | Angular allows up to 90 seconds; the selected AI request timeout is 30 seconds. |
 
 ## What the application does not implement
 
 There is no retry/circuit-breaker policy, persistent metrics, alerting,
-public Claude-status field, special 503 response, custom 404 body, or request
-correlation ID in the inspected code. Those are possible future improvements,
-not current behavior.
+provider-specific public error detail, custom 404 body, or request
+correlation ID. Those are possible future improvements, not current behavior.

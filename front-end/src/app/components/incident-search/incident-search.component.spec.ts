@@ -129,6 +129,21 @@ describe('IncidentSearchComponent', () => {
     expect(page.textContent).toContain('Load test the affected endpoint');
   });
 
+  it('shows the AI-unavailable response when Smart Search fails with HTTP 503', () => {
+    setDescription('API requests are slow.');
+    clickSmartSearch();
+    httpTestingController.expectOne(SMART_SEARCH_URL).flush(
+      { message: 'AI analysis is temporarily unavailable. Please try again later.' },
+      { status: 503, statusText: 'Service Unavailable' },
+    );
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain(
+      'AI analysis is temporarily unavailable. Please try again later.',
+    );
+    expect(fixture.nativeElement.querySelectorAll('.result-card')).toHaveLength(0);
+  });
+
   it('shows historical results and an AI-unavailable notice when smart search has no analysis', () => {
     setDescription('API requests are slow.');
     clickSmartSearch();

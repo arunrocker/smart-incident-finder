@@ -1,24 +1,24 @@
 Smart Incident Resolution Finder - API Samples
 ================================================
 
-Endpoint
---------
-POST http://localhost:8080/api/incidents/search
+Smart Search endpoint
+---------------------
+POST http://localhost:8080/api/incidents/smart-search
 Content-Type: application/json
 
 This endpoint invokes the selected AI provider after TF-IDF matching.
-Gemini is configured by default. Set GEMINI_API_KEY in the environment first;
-do not place the key directly in application.yaml.
+Groq's openai/gpt-oss-120b model is configured by default. Set GROQ_API_KEY in the
+environment first; do not place the key directly in application.yaml.
 
 Start the application from the project directory:
-  $env:GEMINI_API_KEY = "your-key"
+  $env:GROQ_API_KEY = "your-key"
   .\mvnw.cmd spring-boot:run
 
 
 1. Search with matches
 ----------------------
 Request:
-  curl.exe -X POST "http://localhost:8080/api/incidents/search" `
+  curl.exe -X POST "http://localhost:8080/api/incidents/smart-search" `
     -H "Content-Type: application/json" `
     -d "{\"description\":\"Application APIs are taking too much time to respond due to slow database queries.\"}"
 
@@ -27,8 +27,7 @@ JSON request body:
   "description": "Application APIs are taking too much time to respond due to slow database queries."
 }
 
-Example response (HTTP 200; an aiAnalysis object is included when Gemini
-returns a valid analysis):
+Example response (HTTP 200):
 {
   "message": "Similar incidents found",
   "results": [
@@ -50,14 +49,25 @@ returns a valid analysis):
       "similarityPercentage": 19.8,
       "resolution": "Reviewed authentication logs, corrected security configuration and verified user credential validation."
     }
-  ]
+  ],
+  "aiAnalysis": {
+    "possibleRootCauses": ["A query may not use an appropriate index"],
+    "explanation": "The symptoms are consistent with database query latency.",
+    "troubleshootingSteps": ["Inspect query plans and database wait statistics"],
+    "preventiveMeasures": ["Monitor query latency"],
+    "additionalRecommendations": ["Test with representative load"]
+  }
 }
 
 Similarity percentages above are calculated using the current incidents.json
 dataset, TF-IDF implementation, and default 10.0 percent threshold. Results
 and scores can change when the dataset or threshold changes.
 
-Use POST http://localhost:8080/api/incidents/tfidf-search to skip AI analysis.
+Use POST http://localhost:8080/api/incidents/search to skip AI analysis.
+Standard Search remains available when the AI provider is unconfigured or unavailable.
+
+Smart Search returns HTTP 503 when AI analysis cannot be completed; it does not
+silently return a historical-only response.
 
 
 2. Search with no matching vocabulary

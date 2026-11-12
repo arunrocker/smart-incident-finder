@@ -44,11 +44,6 @@ public class ClaudeApiClient implements AiAnalysisProvider {
         this.restClient = restClient;
         this.properties = properties;
         this.objectMapper = objectMapper;
-        if (!properties.isConfigured()) {
-            throw new IllegalStateException(
-                    "Claude is selected but app.ai.claude.api-key, model, and url must be configured."
-            );
-        }
     }
 
     private static RestClient createRestClient(

@@ -85,28 +85,27 @@ potential improvement rather than claiming it already exists.
 > language-aware tokenization or embeddings, but that would change the
 > algorithm and require new tests.
 
-## Smart Search and Claude
+## Smart Search and AI providers
 
 **Question: How does the AI integration work?**
 
-> The backend first obtains the normal historic results. It constructs a
-> Claude Messages request containing the report and those result DTOs, plus a
-> system instruction to return a specific JSON analysis shape. RestClient
-> sends it with the API key and API-version headers. Jackson parses and
-> validates the five analysis fields.
+> The backend first obtains the normal historic results. It sends the report
+> and up to three Java-ranked result DTOs to Groq, with an instruction to
+> return a specific JSON analysis shape. RestClient sends the request using
+> the configured API key. Jackson parses and validates the five analysis
+> fields. Claude remains an alternative provider.
 
-**Question: What if Claude is down or returns invalid data?**
+**Question: What if the AI provider is down or returns invalid data?**
 
-> The client categorizes the failure and the smart-search service catches
-> that Claude-specific exception. It returns the historic search response
-> without `aiAnalysis`. That means the external AI is optional and cannot
-> prevent standard search from working. There is no retry or circuit breaker
-> currently.
+> The client categorizes the failure and the centralized exception handler
+> returns HTTP 503 with a generic message. Standard Search never calls AI, so
+> provider outages do not block TF-IDF search. There is no retry or circuit
+> breaker currently.
 
 **Question: How do you prevent hallucinations?**
 
-> The prompt tells Claude not to invent historic facts, but a prompt is not a
-> hard guarantee. The stronger boundary is in code: Claude's response schema
+> The prompt tells the model not to invent historic facts, but a prompt is not a
+> hard guarantee. The stronger boundary is in code: the AI response schema
 > has only analysis fields. The final IDs, scores, titles, and resolutions
 > remain the Java-generated historic results.
 
@@ -161,9 +160,9 @@ potential improvement rather than claiming it already exists.
 
 ## Testing
 
-**Question: How do you test Claude without spending credits?**
+**Question: How do you test AI without spending credits?**
 
-> The Claude client is exercised through mock HTTP responses and service
+> The AI clients are exercised through mock HTTP responses and service
 > collaborators. The tests cover request/response parsing and failure
 > categories without sending a real provider request.
 
@@ -171,7 +170,7 @@ potential improvement rather than claiming it already exists.
 
 > The component tests provide `HttpTestingController` responses and verify
 > endpoint selection, successful and empty results, validation, loading,
-> duplicate prevention, errors, AI fallback, and clearing state. They don't
+> duplicate prevention, errors, AI-unavailable states, and clearing state. They don't
 > start a real backend, so they are not end-to-end network tests.
 
 ## Trade-offs and realistic follow-ups

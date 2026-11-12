@@ -1,4 +1,4 @@
-# Claude and Gemini AI Integration
+# Groq, Claude, and Gemini AI Integration
 
 ## What the selected provider does
 
@@ -7,28 +7,28 @@ up to three already-selected historical search results and returns additional
 diagnostic guidance. The Java TF-IDF implementation remains the authority for
 historic incident IDs, titles, similarity percentages, and resolutions.
 
-Both implementations satisfy
+All three clients implement
 [`AiAnalysisProvider.java`](../back-end/src/main/java/com/incident/finder/service/AiAnalysisProvider.java).
 Spring conditionally activates the selected client, and
 [`AiProviderConfiguration.java`](../back-end/src/main/java/com/incident/finder/service/AiProviderConfiguration.java)
 injects it into
 [`SmartIncidentSearchService.java`](../back-end/src/main/java/com/incident/finder/service/SmartIncidentSearchService.java).
-The clients are
-[`ClaudeApiClient.java`](../back-end/src/main/java/com/incident/finder/service/ClaudeApiClient.java)
-and
-[`GeminiApiClient.java`](../back-end/src/main/java/com/incident/finder/service/GeminiApiClient.java).
+The clients are [`ClaudeApiClient.java`](../back-end/src/main/java/com/incident/finder/service/ClaudeApiClient.java),
+[`GeminiApiClient.java`](../back-end/src/main/java/com/incident/finder/service/GeminiApiClient.java), and
+[`GroqApiClient.java`](../back-end/src/main/java/com/incident/finder/service/GroqApiClient.java).
+Groq is the default provider.
 The response DTO is
 [`AiAnalysis.java`](../back-end/src/main/java/com/incident/finder/model/AiAnalysis.java).
 
 ## Configuration and credentials
 
-`back-end/src/main/resources/application.yaml` contains provider selection
-and both providers' non-secret settings:
+`back-end/src/main/resources/application.yaml` selects Groq and contains
+non-secret settings for all available providers:
 
 ```yaml
 app:
   ai:
-    provider: claude # change to gemini and restart to switch
+    provider: groq
     claude:
       api-key: ${CLAUDE_API_KEY:}
       url: https://api.anthropic.com/v1/messages
@@ -39,16 +39,22 @@ app:
     gemini:
       api-key: ${GEMINI_API_KEY:}
       base-url: https://generativelanguage.googleapis.com/v1beta
-      model: gemini-2.5-flash
+      model: gemini-3.8-flash
       timeout: 30s
       max-output-tokens: 1200
+    groq:
+      api-key: ${GROQ_API_KEY:}
+      base-url: https://api.groq.com/openai/v1
+      model: openai/gpt-oss-120b
+      timeout: 30s
+      max-completion-tokens: 1200
 ```
 
 `ClaudeApiProperties` binds `app.ai.claude.*`; `GeminiApiProperties` binds
-`app.ai.gemini.*`. The selected client validates its API key and required
-settings during startup. The application fails clearly when the provider is
-unsupported or the selected key is missing. An inactive provider does not
-need a configured key.
+`app.ai.gemini.*`; `GroqApiProperties` binds `app.ai.groq.*`. An unsupported
+provider prevents startup, but a missing selected API key does not: Standard
+Search remains usable, and Smart Search returns HTTP 503 until the key is
+configured. An inactive provider does not need a configured key.
 
 Set credentials separately in PowerShell; never commit real keys:
 
@@ -56,13 +62,14 @@ Set credentials separately in PowerShell; never commit real keys:
 Set-Location .\back-end
 $env:CLAUDE_API_KEY = '<your Anthropic API key>'
 $env:GEMINI_API_KEY = '<your Google AI API key>'
+$env:GROQ_API_KEY = '<your Groq API key>'
 .\mvnw.cmd spring-boot:run
 ```
 
 Only the selected provider's key is required; the other can remain unset.
 The API keys are Spring environment-property overrides. The project does not
 ship a `.env` loader or secret manager. Change only `app.ai.provider` between
-`claude` and `gemini`, then restart the backend to apply the choice.
+`groq`, `claude`, and `gemini`, then restart the backend to apply the choice.
 
 ## Outbound request
 
@@ -82,6 +89,11 @@ The serialized body contains `model`, `max_tokens`, `system`, and
 Gemini posts to
 `{base-url}/models/{model}:generateContent`, using `x-goog-api-key` and a JSON
 body with `systemInstruction`, `contents`, and `generationConfig`.
+
+Groq posts to `{base-url}/chat/completions` with a Bearer API key, chat
+messages, and a strict JSON Schema response format. GPT-OSS 120B supports
+Groq's strict structured outputs, in which every analysis field is required
+and additional properties are disallowed.
 
 ### Shared system prompt
 
@@ -115,9 +127,9 @@ Historical resolved incidents selected by the application's TF-IDF engine:
 ## Provider response parsing
 
 Claude reads Anthropic's `content` blocks; Gemini reads
-`candidates[].content.parts[]`. Both select the first text block, accept plain
-JSON or a complete Markdown JSON fence, and use Jackson to deserialize it to
-`AiAnalysis`. Shared parsing and validation are in
+`candidates[].content.parts[]`; Groq reads the chat-completions
+`choices[].message.content` field. Clients use Jackson to deserialize the
+analysis to `AiAnalysis`. Shared parsing and validation are in
 `AiAnalysisProviderSupport`.
 
 The `AiAnalysis` record contains:
@@ -151,26 +163,24 @@ the parsed analysis DTO has no fields for historic result records, and the final
 historic results are supplied by Java. The UI also labels historic
 resolutions separately from AI-generated suggestions.
 
-## Failures and fallback
+## Failures and HTTP status handling
 
 The active client maps:
 
 | Failure | `FailureType` |
 |---|---|
-| Missing selected key/configuration | Startup failure |
+| Missing selected key/configuration | `NOT_CONFIGURED` |
 | HTTP 401 or 403 | `AUTHENTICATION` |
 | HTTP 429 | `RATE_LIMITED` |
 | HTTP 408/504 or socket timeout | `TIMEOUT` |
 | Unreadable/invalid/incomplete response | `INVALID_RESPONSE` |
 | Other HTTP/network/client failures | `API_FAILURE` |
 
-`SmartIncidentSearchService` catches `AiProviderException`, logs the provider
-and failure category, and returns the original Java-generated historical
-response. The frontend
-therefore can show historical matches with an AI-unavailable notice.
-Retries/backoff and a separate public warning/status field are not
-implemented. If the historic search itself fails, the exception continues to
-the normal backend error handler.
+`GlobalExceptionHandler` logs only the failure category and returns HTTP 503
+with a generic message; it does not expose upstream error details or credentials.
+Standard Search never calls the AI provider. Retries/backoff are not
+implemented. If the historic search itself fails, normal backend error
+handling applies.
 
 ## Example smart-search API request and response
 
@@ -183,9 +193,9 @@ Content-Type: application/json
 {"description":"Application APIs are slow because database queries are slow."}
 ```
 
-Example response shape. The historic fields are computed by this application's
-search and the analysis fields are generated by the selected provider when
-configured and available:
+Example successful response shape. The historic fields are computed by this
+application's search and the analysis fields are generated by the selected
+provider:
 
 ```json
 {
@@ -209,5 +219,16 @@ configured and available:
 ```
 
 The example analysis is illustrative, not a stored response. When the selected
-provider is unavailable during a request, the endpoint omits `aiAnalysis` and
-returns the historic portion only.
+provider is unavailable, the endpoint returns HTTP 503 instead of a
+success-shaped response without `aiAnalysis`.
+
+Groq provides free usage with account- and model-specific rate limits. Check
+the current account limits in GroqCloud; requests over quota may return HTTP
+429. Free availability can change, and Groq's model page also lists paid
+on-demand rates. Review your Groq billing settings before using it beyond the
+free allowance. See [Groq API compatibility](https://console.groq.com/docs/openai),
+[models](https://console.groq.com/docs/models),
+[GPT-OSS 120B](https://console.groq.com/docs/model/openai/gpt-oss-120b),
+[structured outputs](https://console.groq.com/docs/structured-outputs),
+[rate limits](https://console.groq.com/docs/rate-limits), and
+[API keys](https://console.groq.com/keys).

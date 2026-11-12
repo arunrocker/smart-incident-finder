@@ -16,8 +16,8 @@ than treating possible improvements as implemented features.
    state, service, models, and rendering.
 5. [TF-IDF and cosine similarity](TFIDF_AND_COSINE_SIMILARITY.md) — the
    historical retrieval algorithm and its implementation details.
-6. [Claude AI integration](CLAUDE_AI_INTEGRATION.md) — configuration,
-   request construction, response parsing, and fallback.
+6. [Claude AI integration](CLAUDE_AI_INTEGRATION.md) — provider configuration,
+   request construction, response parsing, and failure handling.
 7. [API documentation](API_DOCUMENTATION.md) — endpoint contracts and
    request examples.
 8. [Exception and failure handling](EXCEPTION_AND_FAILURE_HANDLING.md) —
@@ -45,18 +45,19 @@ than treating possible improvements as implemented features.
 
 ## Implementation gaps and cautions
 
-- Claude API key/model are `xxxxx` placeholders. Without externally supplied
-  valid values, smart search returns historical results without `aiAnalysis`.
+- Groq's GPT-OSS 120B is the default Smart Search model. Configure its API key
+  through `GROQ_API_KEY`; provider failures return HTTP 503 while Standard
+  Search remains independent.
 - The existing checked-in API sample/help material documents standard search
   only and includes stale dataset details; this docs set describes both
   routes and the current dataset.
 - The backend has no CORS policy; local browser access relies on the Angular
   development proxy. Production routing/CORS must be configured separately.
-- There is no database, Docker setup, auth, public metrics endpoint, Claude
+- There is no database, authentication, public metrics endpoint, AI-provider
   retry/circuit breaker, or purpose-built not-found response in the inspected
   implementation.
-- Angular's 15-second request timeout is shorter than the backend Claude
-  timeout of 30 seconds.
+- Angular's 90-second request timeout allows for slower Smart Search responses;
+  the backend AI-provider timeout is 30 seconds.
 - The frontend production build was successful during implementation but
   emitted a component CSS budget warning (above 4 KB warning and below 8 KB
   error limit).

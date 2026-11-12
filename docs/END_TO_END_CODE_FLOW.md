@@ -139,13 +139,11 @@ sequenceDiagram
 
 `loading` disables both search buttons and Clear, preventing overlapping
 requests. Search validation is performed client-side for user feedback and
-again on the backend (`@NotBlank` plus the 5000-character setting). The HTTP
-service has a 15-second RxJS timeout and maps common statuses to user-facing
-messages. The backend uses `GlobalExceptionHandler` for malformed JSON,
-validation failures, unsupported methods/content types, and unexpected
-exceptions. A Claude-specific failure is deliberately handled inside
-`SmartIncidentSearchService`, so it does not turn a successfully completed
-historic search into a failed request.
+again on the backend (`@NotBlank` plus the 5000-character setting). The HTTP service has a 90-second RxJS timeout and maps common statuses to
+user-facing messages. The backend uses `GlobalExceptionHandler` for malformed
+JSON, validation failures, unsupported methods/content types, AI provider
+failures, and unexpected exceptions. A provider failure returns HTTP 503 for
+Smart Search; Standard Search does not call the provider.
 
 ## HTTP payload shapes
 
@@ -188,7 +186,5 @@ Smart search adds an optional field:
 ```
 
 Values above illustrate the contract; actual historical data comes from
-`incidents.json`, while analysis is generated at runtime. The current backend
-configuration uses placeholder Claude key/model values, so unless real
-configuration is supplied the smart route returns historic results without
-`aiAnalysis`.
+`incidents.json`, while analysis is generated at runtime. Without a configured
+AI key, Standard Search still works and Smart Search returns HTTP 503.

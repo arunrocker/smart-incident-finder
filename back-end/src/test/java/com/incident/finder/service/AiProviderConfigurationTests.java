@@ -2,7 +2,6 @@ package com.incident.finder.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +9,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.web.client.RestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.List;
 
 class AiProviderConfigurationTests {
 
@@ -51,28 +53,65 @@ class AiProviderConfigurationTests {
     }
 
     @Test
-    void failsClearlyWhenSelectedProviderKeyIsMissing() {
+    void activatesOnlyGroqWhenGroqIsSelected() {
         contextRunner
-                .withPropertyValues("app.ai.provider=gemini")
+                .withPropertyValues(
+                        "app.ai.provider=groq",
+                        "app.ai.groq.api-key=test-groq-key"
+                )
                 .run(context -> {
-                    assertThat(context).hasFailed();
-                    assertThat(context.getStartupFailure())
-                            .hasRootCauseMessage(
-                                    "Gemini is selected but app.ai.gemini.api-key, model, and base-url must be configured."
-                            );
+                    assertThat(context).hasNotFailed();
+                    assertThat(context).hasBean("selectedAiAnalysisProvider");
+                    assertThat(context.getBean(AiAnalysisProvider.class))
+                            .isInstanceOf(GroqApiClient.class);
+                    assertThat(context).hasBean("com.incident.finder.service.GroqApiClient");
+                    assertThat(context).doesNotHaveBean(ClaudeApiClient.class);
+                    assertThat(context).doesNotHaveBean(GeminiApiClient.class);
                 });
     }
 
     @Test
-    void failsClearlyWhenClaudeKeyIsMissing() {
+    void allowsStandardSearchStartupWhenGroqKeyIsMissing() {
+        contextRunner
+                .withPropertyValues("app.ai.provider=groq")
+                .run(context -> {
+                    assertThat(context).hasNotFailed();
+                    AiAnalysisProvider provider = context.getBean(AiAnalysisProvider.class);
+                    assertThat(provider).isInstanceOf(GroqApiClient.class);
+                    assertThrows(
+                            AiProviderException.class,
+                            () -> provider.analyze("issue", List.of())
+                    );
+                });
+    }
+
+    @Test
+    void allowsStandardSearchStartupWhenGeminiKeyIsMissing() {
+        contextRunner
+                .withPropertyValues("app.ai.provider=gemini")
+                .run(context -> {
+                    assertThat(context).hasNotFailed();
+                    AiAnalysisProvider provider = context.getBean(AiAnalysisProvider.class);
+                    assertThat(provider).isInstanceOf(GeminiApiClient.class);
+                    assertThrows(
+                            AiProviderException.class,
+                            () -> provider.analyze("issue", List.of())
+                    );
+                });
+    }
+
+    @Test
+    void allowsStandardSearchStartupWhenClaudeKeyIsMissing() {
         contextRunner
                 .withPropertyValues("app.ai.provider=claude")
                 .run(context -> {
-                    assertThat(context).hasFailed();
-                    assertThat(context.getStartupFailure())
-                            .hasRootCauseMessage(
-                                    "Claude is selected but app.ai.claude.api-key, model, and url must be configured."
-                            );
+                    assertThat(context).hasNotFailed();
+                    AiAnalysisProvider provider = context.getBean(AiAnalysisProvider.class);
+                    assertThat(provider).isInstanceOf(ClaudeApiClient.class);
+                    assertThrows(
+                            AiProviderException.class,
+                            () -> provider.analyze("issue", List.of())
+                    );
                 });
     }
 
@@ -84,7 +123,7 @@ class AiProviderConfigurationTests {
                     assertThat(context).hasFailed();
                     assertThat(context.getStartupFailure())
                             .hasRootCauseMessage(
-                                    "Unsupported app.ai.provider 'openai'. Supported providers are 'claude' and 'gemini'."
+                                    "Unsupported app.ai.provider 'openai'. Supported providers are 'claude', 'gemini', and 'groq'."
                             );
                 });
     }
@@ -93,7 +132,8 @@ class AiProviderConfigurationTests {
     @Import({
             AiProviderConfiguration.class,
             ClaudeApiClient.class,
-            GeminiApiClient.class
+            GeminiApiClient.class,
+            GroqApiClient.class
     })
     static class ProviderTestConfiguration {
 

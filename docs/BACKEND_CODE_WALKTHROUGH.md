@@ -87,20 +87,20 @@ The project uses constructor injection and Spring component scanning.
   and chooses the match/no-match message;
   `toSearchResult(IncidentMatch)` rounds scores to one decimal percentage.
 - **Calls/next:** standard controller calls it directly; smart service calls
-  it before Claude. The engine is the matching dependency.
+  it before the selected AI provider. The engine is the matching dependency.
 - **Important boundary:** historic result DTOs are built only from `Incident`
   and `IncidentMatch`, never from Claude.
 
 ### `SmartIncidentSearchService.java`
 
-- **Responsibility:** coordinates historic search with optional AI analysis.
-- **Dependencies:** `IncidentService`, `ClaudeApiClient`.
+- **Responsibility:** coordinates historic search with AI analysis.
+- **Dependencies:** `IncidentService`, `AiAnalysisProvider`.
 - **Method:** `search(String)` obtains the standard response first, passes its
-  results and the user description to `ClaudeApiClient.analyze`, and returns a
-  response with `aiAnalysis`. It catches `ClaudeApiException`, logs only the
-  failure category, and returns the original historic response.
-- **Why/next:** isolates the optional dependency so Claude failures do not
-  alter standard search and do not erase smart-search historic matches.
+  results and the user description to the selected provider and returns a
+  response with `aiAnalysis`. Typed provider failures propagate to centralized
+  handling as HTTP 503.
+- **Why/next:** keeps provider integration separate from TF-IDF; standard
+  search never invokes the AI service.
 
 ### `ClaudeApiClient.java`
 

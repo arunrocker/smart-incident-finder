@@ -11,8 +11,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -51,26 +51,24 @@ class SmartIncidentSearchServiceTests {
     }
 
     @Test
-    void preservesHistoricalResultsAndOmitsAnalysisWhenSelectedProviderFails() {
+    void propagatesProviderFailureInsteadOfPretendingAnalysisSucceeded() {
         String description = "Database requests are slow";
         IncidentSearchResponse historicalResponse = new IncidentSearchResponse(
                 "Similar incidents found",
                 List.of(new IncidentSearchResult(7, "Slow database", 88.4, "Added an index"))
         );
         when(incidentService.searchIncidents(description)).thenReturn(historicalResponse);
-        when(aiAnalysisProvider.providerName()).thenReturn("test-provider");
         when(aiAnalysisProvider.analyze(description, historicalResponse.results()))
                 .thenThrow(new AiProviderException(
                         AiProviderException.FailureType.RATE_LIMITED,
                         "Provider rate limit reached"
                 ));
 
-        IncidentSearchResponse response =
-                new SmartIncidentSearchService(incidentService, aiAnalysisProvider).search(description);
-
-        assertSame(historicalResponse, response);
-        assertNull(response.aiAnalysis());
-        assertEquals(historicalResponse.results(), response.results());
+        assertThrows(
+                AiProviderException.class,
+                () -> new SmartIncidentSearchService(incidentService, aiAnalysisProvider)
+                        .search(description)
+        );
     }
 
     @Test

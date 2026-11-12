@@ -68,39 +68,55 @@ The backend does not currently configure CORS. A direct browser call from a
 different origin therefore requires deployment routing or a deliberate CORS
 configuration.
 
-## Select Claude or Gemini
+## Smart Search AI provider
 
-`back-end/src/main/resources/application.yaml` selects the backend AI
-integration:
+`back-end/src/main/resources/application.yaml` selects Groq and stores only
+non-secret provider settings:
 
 ```yaml
 app:
   ai:
-    provider: gemini # set to claude to select Claude instead
+    provider: groq
+    groq:
+      api-key: ${GROQ_API_KEY:}
+      base-url: https://api.groq.com/openai/v1
+      model: openai/gpt-oss-120b
+      timeout: 30s
+      max-completion-tokens: 1200
 ```
 
-Change only `app.ai.provider` to `claude` or `gemini`, then restart the
-backend. Both clients implement the same `AiAnalysisProvider` interface.
-Spring creates only the selected conditional client; Angular continues using
-the same smart-search endpoint and response DTO.
+The selected Groq model is GPT-OSS 120B. Groq lists it as a high-capability
+reasoning and coding model, and supports strict JSON Schema output for it.
+Groq's API uses an OpenAI-compatible chat-completions endpoint. The provider
+can also be changed to `gemini` or `claude`.
 
-API credentials are not stored in YAML. Supply the two keys independently
-through environment variables:
+Create a Groq API key at [GroqCloud API Keys](https://console.groq.com/keys)
+and provide it through the environment; never put the actual key in YAML or
+source control:
 
 ```powershell
-$env:CLAUDE_API_KEY = '<your Claude API key>'
-$env:GEMINI_API_KEY = '<your Gemini API key>'
+$env:GROQ_API_KEY = '<your Groq API key>'
 Set-Location .\back-end
 .\mvnw.cmd spring-boot:run
 ```
 
-Only the selected provider's key is required; the inactive provider's key
-may remain unset. Startup fails clearly when the provider is unsupported or
-the selected API key and required settings are missing. The YAML holds model,
-endpoint, timeout, and output-token settings. Claude uses Anthropic Messages;
-Gemini uses `generateContent` with JSON response mode. Both map to the same
-`AiAnalysis` response model. Runtime provider failures still fall back to
-historical results without AI analysis.
+The environment variable overrides the empty YAML placeholder via Spring
+configuration properties. Missing or invalid credentials do not prevent
+application startup: Standard Search remains usable, while Smart Search returns
+HTTP 503 if AI analysis cannot be completed. The Groq call requests strict JSON
+Schema output, and the response is validated before it is returned.
+
+Groq provides free API access with account/model-specific limits, so a paid
+subscription is not required to try the free tier. Limits are applied at the
+organization level and can change; check your GroqCloud limits dashboard.
+Requests beyond available limits can receive HTTP 429. Groq's model/pricing
+pages may also show paid usage rates, so review your account's free quota and
+billing settings before deployment. See Groq's [API compatibility guide](https://console.groq.com/docs/openai),
+[models](https://console.groq.com/docs/models),
+[GPT-OSS 120B details](https://console.groq.com/docs/model/openai/gpt-oss-120b),
+[structured outputs](https://console.groq.com/docs/structured-outputs),
+[rate limits](https://console.groq.com/docs/rate-limits), and
+[API keys](https://console.groq.com/keys).
 
 ## Deploy on Render (free tier)
 
@@ -111,7 +127,7 @@ Spring Boot API together as one Docker web service. This keeps the frontend's
 1. Push the repository to GitHub and sign in to Render.
 2. In Render, create a **Blueprint** and select this GitHub repository. Render
    reads `render.yaml` and builds the free web service.
-3. Set `GEMINI_API_KEY` to a valid Gemini API key when prompted (or in the
+3. Set `GROQ_API_KEY` to your Groq API key when prompted (or in the
    service's Environment settings). Keep the key in Render, not in source.
 4. Wait for the deployment to finish, then open the service's `onrender.com`
    URL.
@@ -119,8 +135,8 @@ Spring Boot API together as one Docker web service. This keeps the frontend's
 The application serves the Angular UI at `/` and its API at `/api`. Render's
 free web services may spin down after inactivity, so the first request after a
 quiet period can take longer. Free-tier limits and availability can change;
-the Gemini API is a separate service and may have its own usage limits or
-charges.
+The Groq API is a separate service. Its free-tier eligibility and rate limits
+are governed by Groq, not Render.
 
 `application.properties` sets the 10.0% minimum similarity, 5000-character
 description limit, and 32768-byte request limit. External Spring property

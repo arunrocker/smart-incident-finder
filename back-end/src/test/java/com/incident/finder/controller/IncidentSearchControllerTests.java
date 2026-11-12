@@ -3,6 +3,7 @@ package com.incident.finder.controller;
 import com.incident.finder.model.IncidentSearchResponse;
 import com.incident.finder.model.IncidentSearchResult;
 import com.incident.finder.model.AiAnalysis;
+import com.incident.finder.service.AiProviderException;
 import com.incident.finder.service.IncidentSearchProperties;
 import com.incident.finder.service.IncidentService;
 import com.incident.finder.service.SearchRequestMetrics;
@@ -22,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -46,7 +48,7 @@ class IncidentSearchControllerTests {
 
     @Test
     void returnsMatchesForAValidSearchRequest() throws Exception {
-        when(smartIncidentSearchService.search("Database API is slow"))
+        when(incidentService.searchIncidents("Database API is slow"))
                 .thenReturn(new IncidentSearchResponse(
                         "Similar incidents found",
                         List.of(new IncidentSearchResult(
@@ -69,7 +71,8 @@ class IncidentSearchControllerTests {
                 .andExpect(jsonPath("$.results[0].resolution").value("Optimized SQL queries"))
                 .andExpect(jsonPath("$.aiAnalysis").doesNotExist());
 
-        verify(smartIncidentSearchService).search("Database API is slow");
+        verify(incidentService).searchIncidents("Database API is slow");
+        verifyNoInteractions(smartIncidentSearchService);
     }
 
     @Test
@@ -93,6 +96,32 @@ class IncidentSearchControllerTests {
                 .andExpect(jsonPath("$.aiAnalysis").doesNotExist());
 
         verify(incidentService).searchIncidents("Database API is slow");
+        verifyNoInteractions(smartIncidentSearchService);
+    }
+
+    @Test
+    void standardSearchDoesNotDependOnTheAiProvider() throws Exception {
+        when(incidentService.searchIncidents("Database API is slow"))
+                .thenReturn(new IncidentSearchResponse(
+                        "Similar incidents found",
+                        List.of(new IncidentSearchResult(
+                                1,
+                                "Application API Response Slow",
+                                85.6,
+                                "Optimized SQL queries"
+                        ))
+                ));
+
+        mockMvc.perform(post("/api/incidents/search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"description\":\"Database API is slow\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.results[0].incidentId").value(1))
+                .andExpect(jsonPath("$.aiAnalysis").doesNotExist());
+
+        verify(incidentService).searchIncidents("Database API is slow");
+        verifyNoInteractions(smartIncidentSearchService);
+        verifyNoInteractions(smartIncidentSearchService);
     }
 
     @Test
@@ -148,8 +177,30 @@ class IncidentSearchControllerTests {
     }
 
     @Test
+    void smartSearchReturnsServiceUnavailableWhenAiProviderFails() throws Exception {
+        when(smartIncidentSearchService.search("Database API is slow"))
+                .thenThrow(new AiProviderException(
+                        AiProviderException.FailureType.RATE_LIMITED,
+                        "provider details must not be exposed"
+                ));
+
+        mockMvc.perform(post("/api/incidents/smart-search")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"description\":\"Database API is slow\"}"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.message").value(
+                        "AI analysis is temporarily unavailable. Please try again later."
+                ))
+                .andExpect(jsonPath("$.message").value(
+                        org.hamcrest.Matchers.not(
+                                org.hamcrest.Matchers.containsString("provider details")
+                        )
+                ));
+    }
+
+    @Test
     void returnsSuccessfulNoMatchResponse() throws Exception {
-        when(smartIncidentSearchService.search("unrelated"))
+        when(incidentService.searchIncidents("unrelated"))
                 .thenReturn(new IncidentSearchResponse(
                         "No sufficiently similar resolved incident found.",
                         List.of()

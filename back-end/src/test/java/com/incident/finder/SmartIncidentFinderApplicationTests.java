@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -70,9 +71,9 @@ class SmartIncidentFinderApplicationTests {
 
 		assertFalse(response.results().isEmpty());
 		assertTrue(response.results().size() <= 3);
-		verify(aiAnalysisProvider).analyze(
-				"Database queries are slow",
-				response.results()
+		verify(aiAnalysisProvider, never()).analyze(
+				anyString(),
+				anyList()
 		);
 		response.results().forEach(result -> {
 			Incident incident = historicalIncidents.stream()
@@ -100,7 +101,7 @@ class SmartIncidentFinderApplicationTests {
 	}
 
 	@Test
-	void smartSearchKeepsHistoricalResultsWhenSelectedProviderFails() throws Exception {
+	void smartSearchReturnsServiceUnavailableWhenSelectedProviderFails() throws Exception {
 		doThrow(new AiProviderException(
 				AiProviderException.FailureType.API_FAILURE,
 				"Test provider failure"
@@ -111,12 +112,9 @@ class SmartIncidentFinderApplicationTests {
 						.content("""
 								{"description":"Database queries are slow"}
 								"""))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.results.length()").value(org.hamcrest.Matchers.lessThanOrEqualTo(3)))
-				.andExpect(jsonPath("$.results[0].incidentId").exists())
-				.andExpect(jsonPath("$.results[0].title").exists())
-				.andExpect(jsonPath("$.results[0].similarityPercentage").exists())
-				.andExpect(jsonPath("$.results[0].resolution").exists())
-				.andExpect(jsonPath("$.aiAnalysis").doesNotExist());
+				.andExpect(status().isServiceUnavailable())
+				.andExpect(jsonPath("$.message").value(
+						"AI analysis is temporarily unavailable. Please try again later."
+				));
 	}
 }

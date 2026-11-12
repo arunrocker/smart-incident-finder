@@ -31,20 +31,20 @@ run `npm run build`.
 | `src/test/java/com/incident/finder/engine/TfidfSimilarityEngineTests.java` | Tokenization/vector similarity, ranking, thresholding, limits, and edge cases such as unrelated vocabulary. |
 | `src/test/java/com/incident/finder/service/IncidentServiceTests.java` | Dataset-backed historical search behavior and service validation/result selection. |
 | `src/test/java/com/incident/finder/service/ClaudeApiClientTests.java` | Claude request construction, response parsing, configuration checks, invalid responses and upstream error classification without live HTTP. |
-| `src/test/java/com/incident/finder/service/SmartIncidentSearchServiceTests.java` | Standard historic results are preserved, AI analysis is added on success, and Claude failure falls back to history. |
+| `src/test/java/com/incident/finder/service/SmartIncidentSearchServiceTests.java` | Historical results are passed to AI and preserved on success; provider failures propagate instead of returning a fake success. |
 
 `@SpringBootTest` is used for application context coverage; MVC behavior is
 tested as a controller slice. Service and engine tests isolate their target
-logic. The suite does not require a live Claude service. The test sources
+logic. The suite does not require a live AI service. The test sources
 should be consulted for the specific examples and assertions; test method
 names can evolve independently of this guide.
 
 ### Why Claude is mocked
 
-Claude tests use a mock HTTP request factory / mocked client response (per
-the test setup) rather than calling Anthropic. This makes them repeatable,
+AI client tests use a mock HTTP request factory / mocked client response rather
+than calling a provider. This makes them repeatable,
 fast, deterministic, and free of API charges. They can test headers, payload
-shape, parser behavior, timeout/error mapping, and fallback without requiring
+shape, parser behavior, timeout/error mapping, and provider failures without requiring
 credentials.
 
 ## Frontend test class
@@ -57,7 +57,7 @@ It covers:
 - empty input validation without an HTTP request;
 - standard search endpoint and rendering up to three historic results;
 - smart endpoint and separation of historic resolutions from AI suggestions;
-- AI-unavailable fallback display;
+- AI-unavailable HTTP 503 display;
 - no-match display;
 - HTTP 400 and HTTP 500 messages;
 - proxy/network unavailable errors;

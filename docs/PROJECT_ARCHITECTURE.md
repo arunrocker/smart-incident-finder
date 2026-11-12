@@ -49,8 +49,8 @@ current screen uses component and global CSS.
 The backend owns input validation, the historical `incidents.json` dataset,
 TF-IDF/cosine calculations, thresholding, and final incident result DTOs. The
 standard endpoint returns only the historic search response. The smart
-endpoint first gets the same authoritative TF-IDF response, then asks
-`ClaudeApiClient` for additional analysis. Claude output cannot replace
+endpoint first gets the same authoritative TF-IDF response, then asks the
+selected `AiAnalysisProvider` for additional analysis. AI output cannot replace
 incident IDs, titles, scores, or resolutions because those fields are copied
 from the Java search response.
 
@@ -66,9 +66,9 @@ the inspected code.
 |---|---|
 | `com.incident.finder` | `SmartIncidentFinderApplication`, Spring Boot entry point and configuration-properties registration. |
 | `com.incident.finder.controller` | REST routes, centralized exception responses, and the request-body size filter. |
-| `com.incident.finder.service` | Dataset/search orchestration, typed configuration, Claude HTTP integration, smart-search fallback, custom validation exception, and in-memory counters. |
+| `com.incident.finder.service` | Dataset/search orchestration, typed configuration, AI provider integrations, custom validation exception, and in-memory counters. |
 | `com.incident.finder.engine` | Pure TF-IDF and cosine-similarity ranking logic in `TfidfSimilarityEngine`. |
-| `com.incident.finder.model` | Dataset models, API request/response/result DTOs, Claude analysis DTO, and error DTO. |
+| `com.incident.finder.model` | Dataset models, API request/response/result DTOs, AI analysis DTO, and error DTO. |
 
 The Angular application is organized as:
 

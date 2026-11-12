@@ -30,21 +30,20 @@ npm start
 Open http://localhost:4200. The Angular development proxy forwards `/api`
 requests to the backend at `http://localhost:8080`.
 
-## Choose the Smart Search AI provider
+## Smart Search AI provider
 
-Set `app.ai.provider` in `back-end/src/main/resources/application.yaml` to
-`claude` or `gemini`. The selected provider's API key is supplied separately
-through `CLAUDE_API_KEY` or `GEMINI_API_KEY`. For example, in PowerShell:
+Groq is selected by default and uses `openai/gpt-oss-120b` for structured
+incident analysis. Set `GROQ_API_KEY` in the environment. Claude and Gemini
+remain available by changing `app.ai.provider` and supplying their respective
+environment-variable keys.
 
 ```powershell
-$env:CLAUDE_API_KEY = '<your Claude API key>'
-$env:GEMINI_API_KEY = '<your Gemini API key>'
+$env:GROQ_API_KEY = '<your Groq API key>'
 ```
 
-Only the selected provider client is created. The application fails during
-startup if the provider name is unsupported or the selected provider's key is
-missing. Changing provider requires only configuration and an application
-restart; Angular and the REST response DTO are provider-neutral. See
+If AI is unavailable or unconfigured, only Smart Search returns HTTP 503;
+Standard Search remains available. Changing the provider requires an
+application restart; Angular and the REST response DTO are provider-neutral. See
 [`docs/SETUP_AND_DEPLOYMENT.md`](docs/SETUP_AND_DEPLOYMENT.md) for details.
 
 See [`docs/README.md`](docs/README.md) for the documentation index and

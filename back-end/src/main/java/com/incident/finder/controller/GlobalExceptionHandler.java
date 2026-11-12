@@ -1,6 +1,7 @@
 package com.incident.finder.controller;
 
 import com.incident.finder.model.ApiErrorResponse;
+import com.incident.finder.service.AiProviderException;
 import com.incident.finder.service.InvalidIncidentSearchException;
 import com.incident.finder.service.SearchRequestMetrics;
 import org.slf4j.Logger;
@@ -23,6 +24,8 @@ public class GlobalExceptionHandler {
             "Request body must be valid JSON with a non-empty description.";
     private static final String INTERNAL_ERROR_MESSAGE =
             "An unexpected server error occurred.";
+    private static final String AI_UNAVAILABLE_MESSAGE =
+            "AI analysis is temporarily unavailable. Please try again later.";
 
     private final SearchRequestMetrics requestMetrics;
 
@@ -91,6 +94,15 @@ public class GlobalExceptionHandler {
         requestMetrics.recordInvalidRequest();
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(new ApiErrorResponse("HTTP method is not supported for this endpoint."));
+    }
+
+    @ExceptionHandler(AiProviderException.class)
+    public ResponseEntity<ApiErrorResponse> handleAiProviderFailure(
+            AiProviderException exception
+    ) {
+        LOGGER.warn("AI provider unavailable (failureType={})", exception.getFailureType());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(new ApiErrorResponse(AI_UNAVAILABLE_MESSAGE));
     }
 
     @ExceptionHandler(Exception.class)

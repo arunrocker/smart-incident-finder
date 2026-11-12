@@ -47,11 +47,6 @@ public class GeminiApiClient implements AiAnalysisProvider {
         this.restClient = restClient;
         this.properties = properties;
         this.objectMapper = objectMapper;
-        if (!properties.isConfigured()) {
-            throw new IllegalStateException(
-                    "Gemini is selected but app.ai.gemini.api-key, model, and base-url must be configured."
-            );
-        }
     }
 
     private static RestClient createRestClient(
@@ -76,6 +71,13 @@ public class GeminiApiClient implements AiAnalysisProvider {
             String description,
             List<IncidentSearchResult> historicalIncidents
     ) {
+        if (!properties.isConfigured()) {
+            throw new AiProviderException(
+                    AiProviderException.FailureType.NOT_CONFIGURED,
+                    "Gemini API credentials or model are not configured"
+            );
+        }
+
         GeminiGenerateContentRequest request = new GeminiGenerateContentRequest(
                 new GeminiContent(List.of(new GeminiPart(AiAnalysisProviderSupport.systemInstructions()))),
                 List.of(new GeminiContent(List.of(new GeminiPart(

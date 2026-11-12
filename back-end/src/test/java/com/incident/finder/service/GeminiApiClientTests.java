@@ -7,15 +7,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
+import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -121,6 +126,149 @@ class GeminiApiClientTests {
                 .andRespond(withSuccess("""
                         {"candidates":[{"content":{"parts":[]}}]}
                         """, MediaType.APPLICATION_JSON));
+
+        AiProviderException exception = assertThrows(
+                AiProviderException.class,
+                () -> client.analyze("issue", List.of())
+        );
+
+        assertEquals(
+                AiProviderException.FailureType.INVALID_RESPONSE,
+                exception.getFailureType()
+        );
+        server.verify();
+    }
+
+    @Test
+    void classifiesInvalidApiKeyAsAuthenticationFailure() {
+        server.expect(requestTo(ENDPOINT))
+                .andRespond(withStatus(UNAUTHORIZED)
+                        .body("invalid key")
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        AiProviderException exception = assertThrows(
+                AiProviderException.class,
+                () -> client.analyze("issue", List.of())
+        );
+
+        assertEquals(
+                AiProviderException.FailureType.AUTHENTICATION,
+                exception.getFailureType()
+        );
+        server.verify();
+    }
+
+    @Test
+    void classifiesForbiddenApiKeyAsAuthenticationFailure() {
+        server.expect(requestTo(ENDPOINT))
+                .andRespond(withStatus(FORBIDDEN)
+                        .body("key is not permitted")
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        AiProviderException exception = assertThrows(
+                AiProviderException.class,
+                () -> client.analyze("issue", List.of())
+        );
+
+        assertEquals(
+                AiProviderException.FailureType.AUTHENTICATION,
+                exception.getFailureType()
+        );
+        server.verify();
+    }
+
+    @Test
+    void classifiesFreeTierQuotaExhaustionAsRateLimited() {
+        server.expect(requestTo(ENDPOINT))
+                .andRespond(withStatus(TOO_MANY_REQUESTS)
+                        .body("""
+                                {"error":{"status":"RESOURCE_EXHAUSTED"}}
+                                """)
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        AiProviderException exception = assertThrows(
+                AiProviderException.class,
+                () -> client.analyze("issue", List.of())
+        );
+
+        assertEquals(AiProviderException.FailureType.RATE_LIMITED, exception.getFailureType());
+        server.verify();
+    }
+
+    @Test
+    void classifiesProviderServerErrorsAsApiFailures() {
+        server.expect(requestTo(ENDPOINT))
+                .andRespond(withStatus(SERVICE_UNAVAILABLE)
+                        .body("provider unavailable")
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        AiProviderException exception = assertThrows(
+                AiProviderException.class,
+                () -> client.analyze("issue", List.of())
+        );
+
+        assertEquals(AiProviderException.FailureType.API_FAILURE, exception.getFailureType());
+        server.verify();
+    }
+
+    @Test
+    void classifiesRequestTimeouts() {
+        server.expect(requestTo(ENDPOINT))
+                .andRespond(request -> {
+                    throw new ResourceAccessException(
+                            "request timed out",
+                            new SocketTimeoutException("timed out")
+                    );
+                });
+
+        AiProviderException exception = assertThrows(
+                AiProviderException.class,
+                () -> client.analyze("issue", List.of())
+        );
+
+        assertEquals(AiProviderException.FailureType.TIMEOUT, exception.getFailureType());
+        server.verify();
+    }
+
+    @Test
+    void classifiesNetworkFailures() {
+        server.expect(requestTo(ENDPOINT))
+                .andRespond(request -> {
+                    throw new ResourceAccessException("connection failed");
+                });
+
+        AiProviderException exception = assertThrows(
+                AiProviderException.class,
+                () -> client.analyze("issue", List.of())
+        );
+
+        assertEquals(AiProviderException.FailureType.API_FAILURE, exception.getFailureType());
+        server.verify();
+    }
+
+    @Test
+    void rejectsMalformedAiAnalysisJson() {
+        server.expect(requestTo(ENDPOINT))
+                .andRespond(withSuccess("""
+                        {"candidates":[{"content":{"parts":[{"text":"not valid json"}]}}]}
+                        """, MediaType.APPLICATION_JSON));
+
+        AiProviderException exception = assertThrows(
+                AiProviderException.class,
+                () -> client.analyze("issue", List.of())
+        );
+
+        assertEquals(
+                AiProviderException.FailureType.INVALID_RESPONSE,
+                exception.getFailureType()
+        );
+        server.verify();
+    }
+
+    @Test
+    void rejectsEmptyAiResponse() {
+        server.expect(requestTo(ENDPOINT))
+                .andRespond(withSuccess("", MediaType.APPLICATION_JSON));
 
         AiProviderException exception = assertThrows(
                 AiProviderException.class,

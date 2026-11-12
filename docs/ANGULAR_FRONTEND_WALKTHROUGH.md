@@ -106,8 +106,9 @@ When analysis is present, the template renders a separate
 - additional recommendations.
 
 The panel warns that suggestions are AI-generated and should be validated.
-When the backend returns successful historic results without `aiAnalysis`,
-the UI shows “AI analysis unavailable” and retains historic cards.
+Standard Search responses contain historic results without `aiAnalysis`.
+Smart Search errors, including an unavailable AI provider, are shown as errors
+instead of being presented as successful analysis.
 
 ## Loading, validation, and error states
 
@@ -119,9 +120,8 @@ Search.
 
 The service maps status 0 to backend/network unavailable, 400 to validation,
 404 to endpoint not found, 413 to oversized request, 500 to internal error,
-502–504 to unavailable, and a 15-second RxJS timeout to a timeout message.
-The backend's Claude failures normally do not reach this error handler:
-the backend returns historic results successfully and omits optional analysis.
+502–504 to unavailable, and an RxJS timeout to a timeout message. An AI
+provider failure returns HTTP 503 from the backend and is rendered as an error.
 
 ## Frontend tests and current limits
 

@@ -10,7 +10,8 @@ import org.springframework.context.annotation.Primary;
 @EnableConfigurationProperties({
         AiProviderProperties.class,
         ClaudeApiProperties.class,
-        GeminiApiProperties.class
+        GeminiApiProperties.class,
+        GroqApiProperties.class
 })
 public class AiProviderConfiguration {
 
@@ -19,7 +20,8 @@ public class AiProviderConfiguration {
     public AiAnalysisProvider selectedAiAnalysisProvider(
             AiProviderProperties properties,
             ObjectProvider<ClaudeApiClient> claudeProvider,
-            ObjectProvider<GeminiApiClient> geminiProvider
+            ObjectProvider<GeminiApiClient> geminiProvider,
+            ObjectProvider<GroqApiClient> groqProvider
     ) {
         String provider = properties.getProvider();
         if ("claude".equals(provider)) {
@@ -28,8 +30,11 @@ public class AiProviderConfiguration {
         if ("gemini".equals(provider)) {
             return geminiProvider.getObject();
         }
+        if ("groq".equals(provider)) {
+            return groqProvider.getObject();
+        }
         throw new IllegalStateException(
-                "Unsupported app.ai.provider '%s'. Supported providers are 'claude' and 'gemini'."
+                "Unsupported app.ai.provider '%s'. Supported providers are 'claude', 'gemini', and 'groq'."
                         .formatted(provider)
         );
     }

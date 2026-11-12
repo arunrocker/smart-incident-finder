@@ -7,7 +7,7 @@ import {
 } from '../models/incident.model';
 import { environment } from '../../environments/environment';
 
-const SEARCH_TIMEOUT_MS = 15_000;
+const SEARCH_TIMEOUT_MS = 90_000;
 
 export class IncidentSearchError extends Error {
   constructor(message: string) {
@@ -87,8 +87,12 @@ export class IncidentService {
           return new IncidentSearchError(
             'The server encountered an error while searching. Please try again.',
           );
-        case 502:
         case 503:
+          return new IncidentSearchError(
+            getApiErrorMessage(error.error) ??
+              'The service is temporarily unavailable. Please try again later.',
+          );
+        case 502:
         case 504:
           return backendUnavailableError();
         default:
